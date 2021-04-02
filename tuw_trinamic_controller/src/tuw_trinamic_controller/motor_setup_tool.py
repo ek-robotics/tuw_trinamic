@@ -11,7 +11,7 @@ def setup_motor_with_configuration(path_to_configuration_yaml):
     module_connection = ConnectionManager().connect()
     module = TMCM_1640(connection=module_connection)
 
-    motor = module.motor(0)
+    motor = module.motor(motorID=0)
     motor_configuration = get_motor_configuration(path_to_configuration_yaml=path_to_configuration_yaml)
     set_motor_configuration(motor=motor, motor_configuration=motor_configuration)
 
