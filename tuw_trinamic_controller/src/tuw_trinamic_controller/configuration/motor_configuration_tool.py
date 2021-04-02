@@ -2,7 +2,7 @@
 
 import yaml
 
-from tuw_trinamic_controller.motor_configuration import MotorConfiguration
+from tuw_trinamic_controller.configuration.motor_configuration import MotorConfiguration
 
 
 def get_motor_configuration(path_to_configuration_yaml):
