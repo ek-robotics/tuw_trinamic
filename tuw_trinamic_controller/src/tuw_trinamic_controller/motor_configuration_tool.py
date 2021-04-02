@@ -5,11 +5,11 @@ import yaml
 from tuw_trinamic_controller.src.tuw_trinamic_controller.motor_configuration import MotorConfiguration
 
 
-def get_motor_configuration(yaml_file_path):
+def get_motor_configuration(path_to_configuration_yaml):
     # open yaml file
-    yaml_file = open(yaml_file_path, 'r')
+    yaml_file = open(file=path_to_configuration_yaml, mode='r')
     # load yaml content
-    yaml_content = yaml.load(yaml_file, Loader=yaml.FullLoader)
+    yaml_content = yaml.load(stream=yaml_file, Loader=yaml.FullLoader)
 
     # create configuration object
     configuration = MotorConfiguration()
@@ -40,26 +40,25 @@ def get_motor_configuration(yaml_file_path):
 
 
 def set_motor_configuration(motor, motor_configuration):
-
     # motor configuration
-    motor.setMotorPolePairs(motor_configuration.pole_pairs)
-    motor.setMaxTorque(motor_configuration.max_torque)
+    motor.setMotorPolePairs(polePairs=motor_configuration.pole_pairs)
+    motor.setMaxTorque(maxTorque=motor_configuration.max_torque)
 
     # hall sensor configuration
-    motor.digitalHall.setHallInvert(motor_configuration.hall_configuration.hall_invert)
+    motor.digitalHall.setHallInvert(invert=motor_configuration.hall_configuration.hall_invert)
 
     # motion settings
-    motor.linearRamp.setMaxVelocity(motor_configuration.motion_configuration.max_velocity)
-    motor.linearRamp.setAcceleration(motor_configuration.motion_configuration.acceleration)
-    motor.linearRamp.setRampEnabled(motor_configuration.motion_configuration.ramp_enable)
-    motor.linearRamp.setTargetReachedVelocity(motor_configuration.motion_configuration.target_reached_velocity)
-    motor.linearRamp.setTargetReachedDistance(motor_configuration.motion_configuration.target_reached_distance)
-    motor.linearRamp.setMotorHaltedVelocity(motor_configuration.motion_configuration.motor_halted_velocity)
+    motor.linearRamp.setMaxVelocity(maxVelocity=motor_configuration.motion_configuration.max_velocity)
+    motor.linearRamp.setAcceleration(acceleration=motor_configuration.motion_configuration.acceleration)
+    motor.linearRamp.setRampEnabled(enable=motor_configuration.motion_configuration.ramp_enable)
+    motor.linearRamp.setTargetReachedVelocity(velocity=motor_configuration.motion_configuration.target_reached_velocity)
+    motor.linearRamp.setTargetReachedDistance(distance=motor_configuration.motion_configuration.target_reached_distance)
+    motor.linearRamp.setMotorHaltedVelocity(velocity=motor_configuration.motion_configuration.motor_halted_velocity)
 
     # PI configuration
-    motor.pid.setTorquePIParameter(motor_configuration.pid_configuration.torque_p,
-                                   motor_configuration.pid_configuration.torque_i)
-    motor.pid.setVelocityPIParameter(motor_configuration.pid_configuration.velocity_p,
-                                     motor_configuration.pid_configuration.velocity_i)
-    motor.pid.setPositionPParameter(motor_configuration.pid_configuration.position_parameter)
+    motor.pid.setTorquePIParameter(pValue=motor_configuration.pid_configuration.torque_p,
+                                   iValue=motor_configuration.pid_configuration.torque_i)
+    motor.pid.setVelocityPIParameter(pValue=motor_configuration.pid_configuration.velocity_p,
+                                     iValue=motor_configuration.pid_configuration.velocity_i)
+    motor.pid.setPositionPParameter(pValue=motor_configuration.pid_configuration.position_parameter)
 
