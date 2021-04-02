@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+import time
+import rospy
+from std_msgs.msg import Float64
+
+from tuw_trinamic_controller.setup.motor_setup_tool import setup_motor_with_configuration
+
+
+class MotorControllerNode:
+    def __init__(self):
+        self.motor = None
+
+    def run(self):
+        rospy.init_node("motor_controller_node")
+
+        config_file = rospy.get_param('~config_file')
+        rospy.loginfo(config_file)
+        self.motor = setup_motor_with_configuration(config_file)
+
+        rospy.Subscriber('motor_1_float64', Float64, callback=self.callback_velocity)
+
+        rospy.spin()
+
+    def callback_velocity(self, message):
+        motor_velocity = round(self.motor.linearRamp.maxVelocity() * message.data)
+        self.motor.setTargetVelocity(motor_velocity)
+
+
+if __name__ == '__main__':
+    motor_controller_node = MotorControllerNode()
+    motor_controller_node.run()

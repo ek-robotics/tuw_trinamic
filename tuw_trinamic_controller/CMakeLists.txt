@@ -12,11 +12,6 @@ catkin_python_setup()
 include_directories()
 
 catkin_install_python(PROGRAMS
-     # scripts/myscript1
-     # scripts/myscript2
-     # nodes/mynode1
-     # nodes/mynode2
-     # src/tuw_trinamic_controller/motor_parameter_tuner.py
-     src/tuw_trinamic_controller/motor_controller_node.py
+     src/tuw_trinamic_controller/motor_controller_node
      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
