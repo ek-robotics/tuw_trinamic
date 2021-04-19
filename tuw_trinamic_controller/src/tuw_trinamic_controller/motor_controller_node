@@ -19,8 +19,9 @@ class MotorControllerNode:
         self._ports['left'] = rospy.get_param(param_name='~usb_port_left_wheel', default='/dev/ttyACM0')
         self._ports['right'] = rospy.get_param(param_name='~usb_port_right_wheel', default='/dev/ttyACM1')
 
-        rospy.loginfo(self._ports['left'])
-        rospy.loginfo(self._ports['right'])
+        rospy.loginfo('SETUP:')
+        rospy.loginfo(' - left wheel on port %s', self._ports['left'])
+        rospy.loginfo(' - right wheel on port %s', self._ports['right'])
 
         self._wheels['left'] = Wheel(usb_port=('--port ' + self._ports['left']), path_to_configuration=config_file)
         self._wheels['right'] = Wheel(usb_port=('--port ' + self._ports['right']), path_to_configuration=config_file)
