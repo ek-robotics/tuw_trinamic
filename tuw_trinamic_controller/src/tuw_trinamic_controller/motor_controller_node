@@ -8,16 +8,16 @@ from tuw_trinamic_controller.device.wheel import Wheel
 
 class MotorControllerNode:
     def __init__(self):
+        self._topic = 'iwos_cmd'
         self._wheels = {}
         self._ports = {}
-        self._topic = 'iwos_cmd'
 
     def run(self):
-        rospy.init_node('motor_controller_node')
+        rospy.init_node('tuw_trinamic_iwos_controller')
 
         config_file = rospy.get_param(param_name='~config_file')
-        self._ports['left'] = rospy.get_param(param_name='~usb_port_left_wheel', default='/dev/ttyACM0')
-        self._ports['right'] = rospy.get_param(param_name='~usb_port_right_wheel', default='/dev/ttyACM1')
+        self._ports['left'] = rospy.get_param(param_name='~usb_port_steering_left_wheel', default='/dev/ttyACM0')
+        self._ports['right'] = rospy.get_param(param_name='~usb_port_steering_right_wheel', default='/dev/ttyACM1')
 
         rospy.loginfo('SETUP:')
         rospy.loginfo(' - left  wheel on port %s', self._ports['left'])
