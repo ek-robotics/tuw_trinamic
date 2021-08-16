@@ -17,14 +17,14 @@ class MotorControllerNode:
 
         config_file = rospy.get_param(param_name='~config_file')
         self._ports['left'] = rospy.get_param(param_name='~usb_port_steering_left_wheel', default='/dev/ttyACM0')
-        self._ports['right'] = rospy.get_param(param_name='~usb_port_steering_right_wheel', default='/dev/ttyACM1')
+        # self._ports['right'] = rospy.get_param(param_name='~usb_port_steering_right_wheel', default='/dev/ttyACM1')
 
         rospy.loginfo('SETUP:')
         rospy.loginfo(' - left  wheel on port %s', self._ports['left'])
-        rospy.loginfo(' - right wheel on port %s', self._ports['right'])
+        # rospy.loginfo(' - right wheel on port %s', self._ports['right'])
 
         self._wheels['left'] = Wheel(usb_port=('--port ' + self._ports['left']), path_to_configuration=config_file)
-        self._wheels['right'] = Wheel(usb_port=('--port ' + self._ports['right']), path_to_configuration=config_file)
+        # self._wheels['right'] = Wheel(usb_port=('--port ' + self._ports['right']), path_to_configuration=config_file)
 
         rospy.Subscriber(name=self._topic, data_class=JointsIWS, callback=self.callback_velocity, queue_size=1)
         
@@ -33,7 +33,7 @@ class MotorControllerNode:
     def callback_velocity(self, message):
         if message.type_steering == 'cmd_velocity':
             self._wheels['left'].set_velocity(message.steering[0])
-            self._wheels['right'].set_velocity(message.steering[1])
+            # self._wheels['right'].set_velocity(message.steering[1])
         else:
             rospy.logwarn('only cmd_velocity commands accepted, but %s received', message.type_steering)
 
