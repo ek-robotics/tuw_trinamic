@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
+
   <name>tuw_trinamic_controller</name>
   <version>0.0.0</version>
   <description>Controller for IWOS robot trinamic module (TMCM-1640)</description>
@@ -16,8 +17,9 @@
   <build_depend>roslint</build_depend>
 
   <exec_depend>rospy</exec_depend>
+  <exec_depend>rostopic</exec_depend>
   <exec_depend>tuw_nav_msgs</exec_depend>
-  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>PyTrinamic</exec_depend>
 
   <export>
     <!--nothing to export -->
