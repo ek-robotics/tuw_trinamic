@@ -1,0 +1,97 @@
+#!/usr/bin/env python
+import sys
+
+import rospy
+
+from tuw_nav_msgs.msg import JointsIWS
+from tuw_trinamic_controller.device.wheel import Wheel
+
+
+class VelocityControllerNode:
+    def __init__(self, usb_port_left_motor='/dev/ttyACM0', usb_port_right_motor='/dev/ttyACM1'):
+        self._topic = 'iwos_cmd'
+        self._index = {
+            'left': 0,
+            'right': 1
+        }
+        self._ports = {
+            'left': usb_port_left_motor,
+            'right': usb_port_right_motor
+        }
+        self._wheels = {
+            'left': None,
+            'right': None
+        }
+        self._config_file = None
+
+    def run(self):
+        self._config_file = rospy.get_param(param_name='trinamic_info')
+
+        rospy.init_node('tuw_trinamic_iwos_controller')
+
+        self._connect_wheels(10)
+
+        rospy.Subscriber(name=self._topic, data_class=JointsIWS, callback=self.callback_velocity, queue_size=1)
+        
+        rospy.spin()
+
+    def _connect_wheels(self, attempts):
+        rospy.loginfo('ATTEMPTING TO SETUP:')
+        rospy.loginfo(' - left  wheel on port %s', self._ports['left'])
+        rospy.loginfo(' - right wheel on port %s', self._ports['right'])
+
+        for attempt in range(1, attempts+1):
+            for side, port in self._ports.items():
+                rospy.loginfo('%d, %s, %s', attempt, side, port)
+                if self._wheels[side] is None:
+                    self._connect_wheel(side, port, (attempt, attempts))
+
+            if None in self._wheels.values() and attempt < attempts:
+                rospy.sleep(10)
+
+        for side, wheel in self._wheels.items():
+            if wheel is None:
+                rospy.logerr('failed to connect to %s wheel on port %s', side, self._ports[side])
+
+        if None in self._wheels.values():
+            rospy.logerr('shutting down node ...')
+            rospy.signal_shutdown('failed to connect to wheel(s)')
+
+    def _connect_wheel(self, side, port, attempt):
+        try:
+            rospy.loginfo('connecting to to %s wheel on port %s (attempt %d of %d) ...',
+                          side, port, attempt[0], attempt[1])
+            self._wheels[side] = Wheel(usb_port=('--port ' + port), path_to_configuration=self._config_file)
+        except ConnectionError:
+            rospy.logwarn('failed to connect to %s wheel on port %s', side, port)
+        else:
+            rospy.loginfo('succeeded to connect to %s wheel on port %s', side, port)
+
+    def callback_velocity(self, message):
+        if message.type_steering == 'cmd_velocity':
+            for side, wheel in self._wheels.items():
+                try:
+                    wheel.set_velocity(message.steering[self._index[side]])
+                except AttributeError:
+                    rospy.logwarn('velocity command sent to not connected %s wheel on port %s', side, self._ports[side])
+
+        else:
+            rospy.logwarn('only cmd_velocity commands accepted, but %s received', message.type_steering)
+
+
+if __name__ == '__main__':
+    try:
+        arguments = rospy.myargv(argv=sys.argv)
+        if len(arguments) == 3:
+            velocity_controller_node = VelocityControllerNode(sys.argv[1], sys.argv[2])
+            velocity_controller_node.run()
+        if len(arguments) > 3:
+            rospy.loginfo('more than 2 arguments, ignoring excess arguments')
+            velocity_controller_node = VelocityControllerNode(sys.argv[1], sys.argv[2])
+            velocity_controller_node.run()
+        if len(arguments) < 3:
+            rospy.loginfo('less than 2 arguments, falling back to default ports')
+            velocity_controller_node = VelocityControllerNode()
+            velocity_controller_node.run()
+    except rospy.ROSInterruptException:
+        pass
