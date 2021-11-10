@@ -5,6 +5,8 @@ import rospy
 
 from tuw_nav_msgs.msg import JointsIWS
 from tuw_trinamic_controller.device.wheel import Wheel
+from tuw_trinamic_controller.exception.invalid_file_exception import InvalidFileException
+from tuw_trinamic_controller.exception.invalid_path_exception import InvalidPathException
 
 
 class VelocityControllerNode:
@@ -42,7 +44,6 @@ class VelocityControllerNode:
 
         for attempt in range(1, attempts+1):
             for side, port in self._ports.items():
-                rospy.loginfo('%d, %s, %s', attempt, side, port)
                 if self._wheels[side] is None:
                     self._connect_wheel(side, port, (attempt, attempts))
 
@@ -58,10 +59,13 @@ class VelocityControllerNode:
             rospy.signal_shutdown('failed to connect to wheel(s)')
 
     def _connect_wheel(self, side, port, attempt):
+        rospy.loginfo('connecting to to %s wheel on port %s (attempt %d of %d) ...', side, port, attempt[0], attempt[1])
         try:
-            rospy.loginfo('connecting to to %s wheel on port %s (attempt %d of %d) ...',
-                          side, port, attempt[0], attempt[1])
             self._wheels[side] = Wheel(usb_port=('--port ' + port), path_to_configuration=self._config_file)
+        except InvalidPathException:
+            rospy.logwarn('failed to load configuration (invalid path)')
+        except InvalidFileException:
+            rospy.logwarn('failed to load configuration (invalid file)')
         except ConnectionError:
             rospy.logwarn('failed to connect to %s wheel on port %s', side, port)
         else:
