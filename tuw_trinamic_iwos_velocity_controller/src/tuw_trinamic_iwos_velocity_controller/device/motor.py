@@ -3,7 +3,7 @@
 from PyTrinamic.connections.ConnectionManager import ConnectionManager
 from PyTrinamic.modules.TMCM1640.TMCM_1640 import TMCM_1640
 
-from tuw_trinamic_controller.exception.invalid_configuration_exception import InvalidConfigurationException
+from tuw_trinamic_iwos_velocity_controller.exception.invalid_configuration_exception import InvalidConfigurationException
 
 
 class Motor:

@@ -2,8 +2,8 @@
 
 import math
 
-from tuw_trinamic_controller.device.motor import Motor
-from tuw_trinamic_controller.device.configuration_tool import ConfigurationTool
+from tuw_trinamic_iwos_velocity_controller.device.motor import Motor
+from tuw_trinamic_iwos_velocity_controller.device.configuration_tool import ConfigurationTool
 
 
 class Wheel:

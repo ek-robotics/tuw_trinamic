@@ -4,9 +4,9 @@ import sys
 import rospy
 
 from tuw_nav_msgs.msg import JointsIWS
-from tuw_trinamic_controller.device.wheel import Wheel
-from tuw_trinamic_controller.exception.invalid_file_exception import InvalidFileException
-from tuw_trinamic_controller.exception.invalid_path_exception import InvalidPathException
+from tuw_trinamic_iwos_velocity_controller.device.wheel import Wheel
+from tuw_trinamic_iwos_velocity_controller.exception.invalid_file_exception import InvalidFileException
+from tuw_trinamic_iwos_velocity_controller.exception.invalid_path_exception import InvalidPathException
 
 
 class VelocityControllerNode:

@@ -2,9 +2,9 @@
 
 import yaml
 
-from tuw_trinamic_controller.exception.invalid_file_exception import InvalidFileException
-from tuw_trinamic_controller.exception.invalid_path_exception import InvalidPathException
-from tuw_trinamic_controller.device.configuration import WheelConfiguration
+from tuw_trinamic_iwos_velocity_controller.exception.invalid_file_exception import InvalidFileException
+from tuw_trinamic_iwos_velocity_controller.exception.invalid_path_exception import InvalidPathException
+from tuw_trinamic_iwos_velocity_controller.device.configuration import WheelConfiguration
 
 
 class ConfigurationTool:
