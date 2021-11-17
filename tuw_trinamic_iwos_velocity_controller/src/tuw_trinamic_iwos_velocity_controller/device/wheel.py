@@ -27,7 +27,8 @@ class Wheel:
         :param velocity: target velocity (m/s)
         :return:
         """
-        velocity_ms = velocity
+        # velocity needs to be multiplied by negative one to change direction (since wheels are mounted in reverse)
+        velocity_ms = velocity * -1
         velocity_rps = velocity_ms / self._perimeter
         velocity_rpm = velocity_rps * 60
         self._motor.set_target_velocity_rpm(velocity=round(velocity_rpm))
