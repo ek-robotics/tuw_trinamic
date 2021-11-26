@@ -4,9 +4,9 @@ import sys
 import rospy
 
 from tuw_nav_msgs.msg import JointsIWS
-from tuw_trinamic_iwos_velocity_controller.device.wheel import Wheel
-from tuw_trinamic_iwos_velocity_controller.exception.invalid_file_exception import InvalidFileException
-from tuw_trinamic_iwos_velocity_controller.exception.invalid_path_exception import InvalidPathException
+from tuw_trinamic_iwos_revolute_controller.device.wheel import Wheel
+from tuw_trinamic_iwos_revolute_controller.exception.invalid_file_exception import InvalidFileException
+from tuw_trinamic_iwos_revolute_controller.exception.invalid_path_exception import InvalidPathException
 
 
 class VelocityControllerNode:
@@ -72,15 +72,15 @@ class VelocityControllerNode:
             rospy.loginfo('succeeded to connect to %s wheel on port %s', side, port)
 
     def callback_velocity(self, message):
-        if message.type_steering == 'cmd_velocity':
+        if message.type_revolute == 'cmd_velocity':
             for side, wheel in self._wheels.items():
                 try:
-                    wheel.set_velocity(message.steering[self._index[side]])
+                    wheel.set_velocity(message.revolute[self._index[side]])
                 except AttributeError:
                     rospy.logwarn('velocity command sent to not connected %s wheel on port %s', side, self._ports[side])
 
         else:
-            rospy.logwarn('only cmd_velocity commands accepted, but %s received', message.type_steering)
+            rospy.logwarn('only cmd_velocity commands accepted, but %s received', message.type_revolute)
 
 
 if __name__ == '__main__':

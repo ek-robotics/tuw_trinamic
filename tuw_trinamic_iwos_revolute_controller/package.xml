@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
 
-  <name>tuw_trinamic_iwos_velocity_controller</name>
+  <name>tuw_trinamic_iwos_revolute_controller</name>
   <version>0.0.0</version>
   <description>Controller for IWOS robot trinamic module (TMCM-1640)</description>
 

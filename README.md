@@ -3,7 +3,7 @@
 ## `tuw_trinamic`
 Metapackage for `tuw trinamic`
 
-## `tuw_trinamic_iwos_velociy_controller`
+## `tuw_trinamic_iwos_revolute_controller`
 Package to control brushless DC motors with [Trinamic TMCM-1640][TrinamicTMCM-1640] with [JointIWS][JointIWS] messages from the [`tuw_msgs` package][tuw_msgs] where `cmd_velocity` (unit: m/s) vales are applied to the motor.
 To move the wheel attached to the motor with the correct angular velocity the wheel diameter as well as other motor specific values are stored in the `annoy.yaml` file.
 
