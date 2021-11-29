@@ -9,9 +9,9 @@ To move the wheel attached to the motor with the correct angular velocity the wh
 
 To communicate with the Trinamic TMCM-1640 board the [PyTrinamic repository][PyTrinamic] (branch: master) is utilized.
 
-To launch the iwos velocity controller node run:
+To launch the iwos revolute controller node run:
 ```bash
-roslaunch tuw_trinamic_iwos_velocity_controller iwos_velocity_controller.launch
+roslaunch tuw_trinamic_iwos_revolute_controller iwos_revolute_controller.launch
 ```
 
 [TrinamicTMCM-1640]: https://www.trinamic.com/products/modules/details/tmcm-1640/ 
