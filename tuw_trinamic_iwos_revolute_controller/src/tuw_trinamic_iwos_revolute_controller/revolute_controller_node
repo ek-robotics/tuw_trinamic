@@ -50,6 +50,8 @@ class VelocityControllerNode:
 
             if None in self._wheels.values() and attempt < attempts:
                 rospy.sleep(10)
+            else:
+                break
 
         for side, wheel in self._wheels.items():
             if wheel is None:
@@ -88,15 +90,20 @@ if __name__ == '__main__':
     try:
         arguments = rospy.myargv(argv=sys.argv)
         if len(arguments) == 3:
-            velocity_controller_node = VelocityControllerNode(sys.argv[1], sys.argv[2])
+            velocity_controller_node = VelocityControllerNode(
+                usb_port_left_motor=sys.argv[1],
+                usb_port_right_motor=sys.argv[2])
             velocity_controller_node.run()
         if len(arguments) > 3:
             rospy.loginfo('more than 2 arguments, ignoring excess arguments')
-            velocity_controller_node = VelocityControllerNode(sys.argv[1], sys.argv[2])
+            velocity_controller_node = VelocityControllerNode(
+                usb_port_left_motor=sys.argv[1],
+                usb_port_right_motor=sys.argv[2])
             velocity_controller_node.run()
         if len(arguments) < 3:
             rospy.loginfo('less than 2 arguments, falling back to default ports')
             velocity_controller_node = VelocityControllerNode()
             velocity_controller_node.run()
     except rospy.ROSInterruptException:
-        pass
+
+        rospy.logerr('ROS Interrupt Exception')
