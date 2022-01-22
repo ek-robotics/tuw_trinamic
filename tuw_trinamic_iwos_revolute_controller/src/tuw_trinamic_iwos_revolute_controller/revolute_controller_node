@@ -70,9 +70,9 @@ class VelocityControllerNode:
         except InvalidFileException:
             rospy.logwarn('failed to load configuration (invalid file)')
         except ConnectionError:
-            rospy.logwarn('failed to connect to %s wheel on port %s', side, port)
+            rospy.logwarn('failed to connect to device on port %s', port)
         else:
-            rospy.loginfo('succeeded to connect to %s wheel on port %s', side, port)
+            rospy.loginfo('succeeded to connect to device on port %s', port)
 
     def callback_velocity(self, message):
         if message.type_revolute == 'cmd_velocity':
