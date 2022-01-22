@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import yaml
+from tuw_trinamic_iwos_revolute_controller.config.abstract_dynamic_config import AbstractDynamicConfig
+from tuw_trinamic_iwos_revolute_controller.config.abstract_file_config import AbstractFileConfig
+from tuw_trinamic_iwos_revolute_controller.file_handler.file_handler import FileHandler
 
-from tuw_trinamic_iwos_revolute_controller.exception.invalid_file_exception import InvalidFileException
-from tuw_trinamic_iwos_revolute_controller.exception.invalid_path_exception import InvalidPathException
 
-
-class TrinamicConfig:
+class TrinamicConfig(AbstractDynamicConfig, AbstractFileConfig):
     def __init__(self):
         self.wheel_diameter = None
         self.motor_pole_pairs = None
@@ -25,8 +24,8 @@ class TrinamicConfig:
         self.torque_i_parameter = None
 
     def from_file(self, config_file_path):
-        config_file = self._open_config_file(config_file_path=config_file_path)
-        config_content = self._read_config_file(config_file=config_file)
+        config_file = FileHandler.open_config_file(config_file_path=config_file_path)
+        config_content = FileHandler.read_config_file(config_file=config_file)
 
         self.wheel_diameter = config_content['Wheel_Diameter']
         self.motor_pole_pairs = config_content['Motor_Pole_Pairs']
@@ -51,24 +50,6 @@ class TrinamicConfig:
         self.torque_i_parameter = pid['Torque_I_Parameter']
 
         return self
-
-    @staticmethod
-    def _open_config_file(config_file_path):
-        yaml_file = open(file=config_file_path, mode='r')
-
-        if yaml_file is None:
-            raise InvalidPathException()
-        else:
-            return yaml_file
-
-    @staticmethod
-    def _read_config_file(config_file):
-        yaml_content = yaml.load(stream=config_file, Loader=yaml.FullLoader)
-
-        if yaml_content is None:
-            raise InvalidFileException()
-        else:
-            return yaml_content
 
     def to_dynamic_reconfigure(self):
         return {

@@ -5,33 +5,33 @@ import sys
 import rospy
 
 from tuw_nav_msgs.msg import JointsIWS
-from tuw_trinamic_iwos_revolute_controller.device.wheel import Wheel
+
+from tuw_trinamic_iwos_revolute_controller.config_handler.config_handler import ConfigHandler
+from tuw_trinamic_iwos_revolute_controller.config.node_config import NodeConfig
+from tuw_trinamic_iwos_revolute_controller.config.trinamic_config import TrinamicConfig
+from tuw_trinamic_iwos_revolute_controller.connection_handler.connection_handler import ConnectionHandler
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_file_exception import InvalidFileException
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_path_exception import InvalidPathException
 
 
 class VelocityControllerNode:
-    def __init__(self, usb_port_left_motor='/dev/ttyACM0', usb_port_right_motor='/dev/ttyACM1'):
-        self._topic = 'iwos_cmd'
-        self._index = {
-            'left': 0,
-            'right': 1
-        }
-        self._ports = {
-            'left': usb_port_left_motor,
-            'right': usb_port_right_motor
-        }
-        self._wheels = {
-            'left': None,
-            'right': None
-        }
-        self._config_file = None
-
-    def run(self):
-        self._config_file = rospy.get_param(param_name='trinamic_info')
-
+    def __init__(self, usb_port_0='/dev/ttyACM0', usb_port_1='/dev/ttyACM1'):
         rospy.init_node('tuw_trinamic_iwos_controller')
 
+        self._topic = 'iwos_cmd'
+        self._usb_ports = [usb_port_0, usb_port_1]
+
+        self._connection_handler = ConnectionHandler()
+        self._connection_handler.connect(self._usb_ports)
+
+        # TODO: add config file for node
+        node_config = NodeConfig().from_file(config_file_path=rospy.get_param(param_name='revolute_node_info'))
+        device_config = TrinamicConfig().from_file(config_file_path=rospy.get_param(param_name='trinamic_info'))
+
+        self._config_handler = ConfigHandler(node_config=node_config, device_config=device_config)
+        self._config_handler.set_device_config(self._connection_handler)
+
+    def run(self):
         self._connect_wheels(10)
 
         rospy.Subscriber(name=self._topic, data_class=JointsIWS, callback=self.callback_velocity, queue_size=1)
@@ -40,11 +40,11 @@ class VelocityControllerNode:
 
     def _connect_wheels(self, attempts):
         rospy.loginfo('ATTEMPTING TO SETUP:')
-        rospy.loginfo(' - left  wheel on port %s', self._ports['left'])
-        rospy.loginfo(' - right wheel on port %s', self._ports['right'])
+        rospy.loginfo(' - left  wheel on port %s', self._usb_ports['left'])
+        rospy.loginfo(' - right wheel on port %s', self._usb_ports['right'])
 
         for attempt in range(1, attempts+1):
-            for side, port in self._ports.items():
+            for side, port in self._usb_ports.items():
                 if self._wheels[side] is None:
                     self._connect_wheel(side, port, (attempt, attempts))
 
@@ -55,7 +55,7 @@ class VelocityControllerNode:
 
         for side, wheel in self._wheels.items():
             if wheel is None:
-                rospy.logerr('failed to connect to %s wheel on port %s', side, self._ports[side])
+                rospy.logerr('failed to connect to %s wheel on port %s', side, self._usb_ports[side])
 
         if None in self._wheels.values():
             rospy.logerr('shutting down node ...')
@@ -64,7 +64,7 @@ class VelocityControllerNode:
     def _connect_wheel(self, side, port, attempt):
         rospy.loginfo('connecting to to %s wheel on port %s (attempt %d of %d) ...', side, port, attempt[0], attempt[1])
         try:
-            self._wheels[side] = Wheel(usb_port=('--port ' + port), path_to_configuration=self._config_file)
+            self._wheels[side] = Wheel(usb_port=('--port ' + port), path_to_configuration=self._config_file_path)
         except InvalidPathException:
             rospy.logwarn('failed to load configuration (invalid path)')
         except InvalidFileException:
@@ -80,7 +80,7 @@ class VelocityControllerNode:
                 try:
                     wheel.set_velocity(message.revolute[self._index[side]])
                 except AttributeError:
-                    rospy.logwarn('velocity command sent to not connected %s wheel on port %s', side, self._ports[side])
+                    rospy.logwarn('velocity command sent to not connected %s wheel on port %s', side, self._usb_ports[side])
 
         else:
             rospy.logwarn('only cmd_velocity commands accepted, but %s received', message.type_revolute)

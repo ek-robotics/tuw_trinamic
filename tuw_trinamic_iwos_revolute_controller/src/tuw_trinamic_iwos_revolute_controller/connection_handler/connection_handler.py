@@ -2,22 +2,21 @@
 
 import rospy
 
-from tuw_trinamic_iwos_revolute_controller.connection.specific_connection.trinamic_connection import TrinamicConnection
+from tuw_trinamic_iwos_revolute_controller.connection.trinamic_connection import TrinamicConnection
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_config_exception import InvalidConfigException
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_file_exception import InvalidFileException
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_path_exception import InvalidPathException
 
 
 class ConnectionHandler:
-    def __init__(self, log_prefix):
-        self._log_prefix = log_prefix
+    def __init__(self):
+        self._node_name = rospy.get_name()
         self._connections = {}
 
-    def connect(self, usb_ports, attempts):
-        rospy.loginfo('ATTEMPTING TO SETUP:')
-
-        for usb_port_key, usb_port in usb_ports.items():
-            rospy.loginfo(' - wheel on port %s', usb_port)
+    def connect(self, usb_ports):
+        log_string = '{node_name}: ATTEMPTING TO SETUP:'.format(node_name=self._node_name)
+        log_string += ''.join(['\n - wheel on port {port}'.format(port=port) for port in usb_ports.values()])
+        rospy.loginfo(log_string)
 
         for usb_port_key, usb_port in usb_ports.items():
             self._connections[usb_port_key] = self._connect_trinamic(usb_port)
@@ -59,5 +58,6 @@ class ConnectionHandler:
         if all(config == configs[0] for config in configs):
             return configs[0]
         else:
-            rospy.logerr('%s: the config for the devices is not identical over all devices', self._log_prefix)
+            log_string = str(self._node_name) + ': the config for the devices is not identical over all devices'
+            rospy.logerr()
             raise InvalidConfigException

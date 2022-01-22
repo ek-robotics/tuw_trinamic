@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import math
 
+import math
 import rospy
+
 from PyTrinamic.connections.ConnectionManager import ConnectionManager
 from PyTrinamic.modules.TMCM1640.TMCM_1640 import TMCM_1640
 
@@ -10,7 +11,7 @@ from tuw_trinamic_iwos_revolute_controller.exception.invalid_config_exception im
 
 class TrinamicConnection:
     def __init__(self, usb_port, log_prefix):
-        self._log_prefix = log_prefix
+        self._node_name = rospy.get_name()
         self._module_connection = ConnectionManager(argList=usb_port).connect()
         self._module = TMCM_1640(connection=self._module_connection)
         self._motor = self._module.motor(motorID=0)
@@ -63,7 +64,7 @@ class TrinamicConnection:
 
     def _check_config_value(self, should, actual, string):
         if should != actual:
-            rospy.logerr('%s: failed to configure %s', self._log_prefix, string)
+            rospy.logerr('{node_name}: failed to configure {string}'.format(node_name=self._node_name, string=string))
             raise InvalidConfigException()
 
     def _check_config(self, config):
