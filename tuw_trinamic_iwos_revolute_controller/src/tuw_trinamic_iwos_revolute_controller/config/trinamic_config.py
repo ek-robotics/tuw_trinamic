@@ -2,7 +2,7 @@
 
 from tuw_trinamic_iwos_revolute_controller.config.abstract_dynamic_config import AbstractDynamicConfig
 from tuw_trinamic_iwos_revolute_controller.config.abstract_file_config import AbstractFileConfig
-from tuw_trinamic_iwos_revolute_controller.file_handler.file_handler import FileHandler
+from tuw_trinamic_iwos_revolute_controller.file_reader.file_reader import FileHandler
 
 
 class TrinamicConfig(AbstractDynamicConfig, AbstractFileConfig):

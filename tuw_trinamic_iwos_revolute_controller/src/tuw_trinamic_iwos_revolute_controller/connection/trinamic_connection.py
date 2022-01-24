@@ -10,15 +10,15 @@ from tuw_trinamic_iwos_revolute_controller.exception.invalid_config_exception im
 
 
 class TrinamicConnection:
-    def __init__(self, usb_port, log_prefix):
+    def __init__(self, usb_port):
         self._node_name = rospy.get_name()
+        self._config = None
         self._module_connection = ConnectionManager(argList=usb_port).connect()
         self._module = TMCM_1640(connection=self._module_connection)
         self._motor = self._module.motor(motorID=0)
-        self.config = None
 
     def set_config(self, config):
-        self.config = config
+        self._config = config
         self._set_motor_pole_pairs(motor_pole_pairs=config.motor_pole_pairs)
         self._set_digital_hall_inverter(digital_hall_invert=config.digital_hall_invert)
         self._set_max_velocity(max_velocity=config.max_velocity)
@@ -36,28 +36,28 @@ class TrinamicConnection:
         return self._check_config(config=config)
 
     def fetch_config(self):
-        self.config.motor_pole_pairs = self._get_motor_pole_pairs()
-        self.config.digital_hall_invert = self._get_digital_hall_inverter()
-        self.config.max_velocity = self._get_max_velocity()
-        self.config.max_torque = self._get_max_torque()
-        self.config.acceleration = self._get_acceleration()
-        self.config.ramp_enable = self._get_ramp_enable()
-        self.config.target_reached_distance = self._get_target_reached_distance()
-        self.config.target_reached_velocity = self._get_target_reached_velocity()
-        self.config.motor_halted_velocity = self._get_motor_halted_velocity()
-        self.config.position_p_parameter = self._get_position_p_parameter()
-        self.config.velocity_p_parameter = self._get_velocity_p_parameter()
-        self.config.velocity_i_parameter = self._get_velocity_i_parameter()
-        self.config.torque_p_parameter = self._get_torque_p_parameter()
-        self.config.torque_i_parameter = self._get_torque_i_parameter()
-        return self.config
+        self._config.motor_pole_pairs = self._get_motor_pole_pairs()
+        self._config.digital_hall_invert = self._get_digital_hall_inverter()
+        self._config.max_velocity = self._get_max_velocity()
+        self._config.max_torque = self._get_max_torque()
+        self._config.acceleration = self._get_acceleration()
+        self._config.ramp_enable = self._get_ramp_enable()
+        self._config.target_reached_distance = self._get_target_reached_distance()
+        self._config.target_reached_velocity = self._get_target_reached_velocity()
+        self._config.motor_halted_velocity = self._get_motor_halted_velocity()
+        self._config.position_p_parameter = self._get_position_p_parameter()
+        self._config.velocity_p_parameter = self._get_velocity_p_parameter()
+        self._config.velocity_i_parameter = self._get_velocity_i_parameter()
+        self._config.torque_p_parameter = self._get_torque_p_parameter()
+        self._config.torque_i_parameter = self._get_torque_i_parameter()
+        return self._config
 
     def set_target_velocity_rpm(self, target_velocity_rpm):
         self._motor.setTargetVelocity(velocity=round(target_velocity_rpm))
 
     def set_target_velocity(self, target_velocity):
         target_velocity_ms = target_velocity * -1
-        target_velocity_rps = target_velocity_ms / (self.config.wheel_diameter * math.pi)
+        target_velocity_rps = target_velocity_ms / (self._config.wheel_diameter * math.pi)
         target_velocity_rpm = target_velocity_rps * 60
         target_velocity_rpm = round(target_velocity_rpm)
         self._motor.set_target_velocity_rpm(velocity=target_velocity_rpm)

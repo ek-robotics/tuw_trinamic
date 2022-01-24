@@ -2,18 +2,22 @@
 
 from tuw_trinamic_iwos_revolute_controller.config.abstract_dynamic_config import AbstractDynamicConfig
 from tuw_trinamic_iwos_revolute_controller.config.abstract_file_config import AbstractFileConfig
-from tuw_trinamic_iwos_revolute_controller.file_handler.file_handler import FileHandler
+from tuw_trinamic_iwos_revolute_controller.file_reader.file_reader import FileHandler
 
 
-class NodeConfig(AbstractDynamicConfig,):
+class NodeConfig(AbstractDynamicConfig, AbstractFileConfig):
     def __init__(self):
         self.reverse_left_wheel = False
         self.reverse_right_wheel = False
         self.swap_wheels = False
 
     def from_file(self, config_file_path):
-        # TODO: create function to read node config from file
-        pass
+        config_file = FileHandler.open_config_file(config_file_path=config_file_path)
+        config_content = FileHandler.read_config_file(config_file=config_file)
+
+        self.reverse_left_wheel = config_content['Reverse_Left_Wheel']
+        self.reverse_right_wheel = config_content['Reverse_Right_Wheel']
+        self.swap_wheels = config_content['Swap_Wheels']
 
     def to_dynamic_reconfigure(self):
         return {
