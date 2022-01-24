@@ -20,7 +20,8 @@ class VelocityControllerNode:
         self._node_name = 'tuw_trinamic_iwos_controller'
 
         self._config = None
-        self._topic = 'iwos_cmd'
+        self._command_topic = 'iwos_cmd'
+        self._state_topic = 'iwos_state_revolute'
         self._usb_ports = [usb_port_0, usb_port_1]
 
         self._connection_handler = None
@@ -52,23 +53,29 @@ class VelocityControllerNode:
         self._reconfigure_trinamic = Server(RevoluteConfig, self._config_handler.dynamic_reconfigure_callback_revolute)
 
         self.subscriber = rospy.Subscriber(
-            name=self._topic, data_class=JointsIWS, callback=self.callback_velocity, queue_size=1)
+            name=self._command_topic, data_class=JointsIWS, callback=self.callback_velocity, queue_size=1)
+
+        # TODO: define publisher
         # self.publisher = rospy.Publisher()
+
+        # TODO: define state_publisher
 
         rospy.spin()
 
-    def set_config(self, config):
-        self._config = config
-
     def callback_velocity(self, message):
         if message.type_revolute == 'cmd_velocity':
-            message.revolute_connection[0] = message.revolute_connection[0] if not self._config.reverse_left_wheel else -message.revolute_connection[0]
-            message.revolute_connection[0] = message.revolute_connection[1] if not self._config.reverse_left_wheel else -message.revolute_connection[1]
-            target_velocity = message.revolute_connection if not self._config.swap_wheels else message.revolute_connection.reverse()
-            target_velocity_dict = dict(zip(self._usb_ports, target_velocity))
-            self._connection_handler.set_target_velocity(target_velocity_dict)
+            self._connection_handler.set_target_velocity(target_velocities=message.revolute)
         else:
             rospy.logwarn('only cmd_velocity commands accepted, but %s received', message.type_revolute)
+
+    def set_config(self, config):
+        if self._config.reverse_left_wheel == config.reverse_left_wheel:
+            self._connection_handler.change_direction('left')
+        if self._config.reverse_right_wheel == config.reverse_right_wheel:
+            self._connection_handler.change_direction('right')
+        if self._config.swap_wheels == config.swap_wheels:
+            self._connection_handler.swap_connections()
+        self._config = config
 
 
 if __name__ == '__main__':

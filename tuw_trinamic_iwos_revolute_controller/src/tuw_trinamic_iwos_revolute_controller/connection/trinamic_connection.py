@@ -5,6 +5,7 @@ import rospy
 
 from PyTrinamic.connections.ConnectionManager import ConnectionManager
 from PyTrinamic.modules.TMCM1640.TMCM_1640 import TMCM_1640
+from sensor_msgs.msg import JointState
 
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_config_exception import InvalidConfigException
 
@@ -16,6 +17,21 @@ class TrinamicConnection:
         self._module_connection = ConnectionManager(argList=usb_port).connect()
         self._module = TMCM_1640(connection=self._module_connection)
         self._motor = self._module.motor(motorID=0)
+
+    def set_target_velocity(self, target_velocity):
+        target_velocity_ms = target_velocity * -1
+        target_velocity_rps = target_velocity_ms / (self._config.wheel_diameter * math.pi)
+        target_velocity_rpm = target_velocity_rps * 60
+        target_velocity_rpm = round(target_velocity_rpm)
+        self._set_target_velocity(target_velocity=target_velocity_rpm)
+
+    def get_state(self, name):
+        joint_state = JointState()
+        joint_state.name += name
+        joint_state.position += self._get_position()
+        joint_state.velocity += self._get_velocity()
+        joint_state.effort += self._get_torque()
+        return joint_state
 
     def set_config(self, config):
         self._config = config
@@ -35,7 +51,7 @@ class TrinamicConnection:
         self._set_torque_i_parameter(torque_i=config.torque_i_parameter)
         return self._check_config(config=config)
 
-    def fetch_config(self):
+    def get_config(self):
         self._config.motor_pole_pairs = self._get_motor_pole_pairs()
         self._config.digital_hall_invert = self._get_digital_hall_inverter()
         self._config.max_velocity = self._get_max_velocity()
@@ -51,21 +67,6 @@ class TrinamicConnection:
         self._config.torque_p_parameter = self._get_torque_p_parameter()
         self._config.torque_i_parameter = self._get_torque_i_parameter()
         return self._config
-
-    def set_target_velocity_rpm(self, target_velocity_rpm):
-        self._motor.setTargetVelocity(velocity=round(target_velocity_rpm))
-
-    def set_target_velocity(self, target_velocity):
-        target_velocity_ms = target_velocity * -1
-        target_velocity_rps = target_velocity_ms / (self._config.wheel_diameter * math.pi)
-        target_velocity_rpm = target_velocity_rps * 60
-        target_velocity_rpm = round(target_velocity_rpm)
-        self._motor.set_target_velocity_rpm(velocity=target_velocity_rpm)
-
-    def _check_config_value(self, should, actual, string):
-        if should != actual:
-            rospy.logerr('{node_name}: failed to configure {string}'.format(node_name=self._node_name, string=string))
-            raise InvalidConfigException()
 
     def _check_config(self, config):
         self._check_config_value(should=config.motor_pole_pairs, actual=self._get_motor_pole_pairs(),
@@ -97,6 +98,26 @@ class TrinamicConnection:
         self._check_config_value(should=config.torque_i_parameter, actual=self._get_torque_i_parameter(),
                                  string='torque i parameter')
         return config
+
+    def _check_config_value(self, should, actual, string):
+        if should != actual:
+            rospy.logerr('%s: failed to configure ', self._node_name, string)
+            raise InvalidConfigException()
+
+    def _get_position(self):
+        return self._motor.actualPosition()
+
+    def _get_velocity(self):
+        return self._motor.actualVelocity()
+
+    def _get_torque(self):
+        return self._motor.actualTorque()
+
+    def _set_target_velocity(self, target_velocity):
+        self._motor.setTargetVelocity(velocity=target_velocity)
+
+    def _get_target_velocity(self):
+        return self._motor.targetVelocity()
 
     def _set_motor_pole_pairs(self, motor_pole_pairs):
         self._motor.setMotorPolePairs(polePairs=motor_pole_pairs)
