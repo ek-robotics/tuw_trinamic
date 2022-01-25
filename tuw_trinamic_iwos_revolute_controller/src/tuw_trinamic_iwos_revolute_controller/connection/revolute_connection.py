@@ -98,7 +98,7 @@ class RevoluteConnection:
 
     def _verify_config_value(self, should, actual, name):
         if should != actual:
-            rospy.logerr('%s: failed to configure ', self._node_name, name)
+            rospy.logerr('%s: failed to configure %s', self._node_name, name)
             raise InvalidConfigException()
 
     def _get_position(self):
