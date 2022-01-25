@@ -26,9 +26,9 @@ class NodeConfig(AbstractDynamicConfig, AbstractFileConfig):
             'swap_wheels': self.swap_wheels,
         }
 
-    def from_dynamic_reconfigure(self, dynamic_reconfigure):
-        self.reverse_left_wheel = dynamic_reconfigure['reverse_left_wheel']
-        self.reverse_right_wheel = dynamic_reconfigure['reverse_right_wheel']
-        self.swap_wheels = dynamic_reconfigure['swap_wheels']
+    def from_dynamic_reconfigure(self, dynamic_config):
+        self.reverse_left_wheel = dynamic_config['reverse_left_wheel']
+        self.reverse_right_wheel = dynamic_config['reverse_right_wheel']
+        self.swap_wheels = dynamic_config['swap_wheels']
 
         return self

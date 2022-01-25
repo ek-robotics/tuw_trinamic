@@ -9,5 +9,5 @@ class AbstractDynamicConfig(ABC):
         pass
 
     @abstractmethod
-    def from_dynamic_reconfigure(self, dynamic_reconfigure):
+    def from_dynamic_reconfigure(self, dynamic_config):
         pass

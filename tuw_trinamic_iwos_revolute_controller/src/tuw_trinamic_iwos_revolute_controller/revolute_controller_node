@@ -84,13 +84,14 @@ class VelocityControllerNode:
     def set_config(self, config):
         if self._config is None:
             self._config = config
-        if self._config.reverse_left_wheel == config.reverse_left_wheel:
-            self._connection_handler.change_direction('left')
-        if self._config.reverse_right_wheel == config.reverse_right_wheel:
-            self._connection_handler.change_direction('right')
-        if self._config.swap_wheels == config.swap_wheels:
-            self._connection_handler.swap_connections()
-        self._config = config
+        else:
+            if self._config.reverse_left_wheel != config.reverse_left_wheel:
+                self._connection_handler.change_direction('left')
+            if self._config.reverse_right_wheel != config.reverse_right_wheel:
+                self._connection_handler.change_direction('right')
+            if self._config.swap_wheels != config.swap_wheels:
+                self._connection_handler.swap_connections()
+            self._config = config
 
     def state_thread(self):
         while not rospy.is_shutdown():

@@ -24,8 +24,6 @@ class ConnectionHandler:
         for attempt in range(1, attempts + 1):
             rospy.loginfo('%s: connecting (%2d of %2d)', self._node_name, attempt, attempts)
 
-            rospy.loginfo(usb_ports)
-
             self._connect_trinamic(side='left', usb_port=usb_ports[0])
             self._connect_trinamic(side='right', usb_port=usb_ports[1])
 
@@ -67,8 +65,6 @@ class ConnectionHandler:
 
     def set_target_velocity(self, target_velocities):
         for side, index in self._index.items():
-            rospy.loginfo(side)
-            rospy.loginfo(self._connections[side])
             target_velocity = target_velocities[index] * self._directions[side]
             self._connections[side].set_target_velocity(target_velocity=target_velocity)
 
