@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractFileConfig(ABC):
+class DefaultConfig(ABC):
     @abstractmethod
     def from_file(self, config_file_path):
         pass

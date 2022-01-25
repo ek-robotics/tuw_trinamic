@@ -20,9 +20,6 @@ class ConfigHandler:
     def set_revolute_config(self):
         self.revolute_connection.set_config(config=self.revolute_config)
 
-    def fetch_revolute_config(self):
-        self.revolute_config = self.revolute_connection.verify_config()
-
     def dynamic_reconfigure_callback_node(self, dynamic_reconfigure, level):
         if level == -1:
             return self.node_config.to_dynamic_reconfigure()
@@ -37,5 +34,4 @@ class ConfigHandler:
 
         self.revolute_config = RevoluteConfig().from_dynamic_reconfigure(dynamic_config=dynamic_reconfigure)
         self.set_revolute_config()
-        self.fetch_revolute_config()
         return self.revolute_config.to_dynamic_reconfigure

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractDynamicConfig(ABC):
+class DynamicConfig(ABC):
     @abstractmethod
     def to_dynamic_reconfigure(self):
         pass

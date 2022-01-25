@@ -18,13 +18,13 @@ from tuw_trinamic_iwos_revolute_controller.connection_handler.connection_handler
 
 class VelocityControllerNode:
     def __init__(self, usb_port_0='/dev/ttyACM0', usb_port_1='/dev/ttyACM1'):
-        self._node_name = 'tuw_trinamic_iwos_controller'
+        self._node_name = 'REVOLUTE_CONTROLLER'
 
         self._config = None
         self._command_topic = 'iwos_cmd'
         self._state_topic = 'iwos_state_revolute'
         self._usb_ports = [usb_port_0, usb_port_1]
-        self._rate = None
+        self._state_rate = None
 
         self._connection_handler = None
         self._config_handler = None
@@ -37,7 +37,7 @@ class VelocityControllerNode:
     def run(self):
         rospy.init_node(self._node_name)
 
-        self._rate = rospy.Rate(int(10))
+        self._state_rate = rospy.Rate(int(10))
 
         self._connection_handler = ConnectionHandler()
         self._connection_handler.connect(self._usb_ports)
@@ -65,10 +65,15 @@ class VelocityControllerNode:
             namespace="trinamic")
 
         self.subscriber = rospy.Subscriber(
-            name=self._command_topic, data_class=JointsIWS, callback=self.callback_velocity, queue_size=1)
+            name=self._command_topic,
+            data_class=JointsIWS,
+            callback=self.callback_velocity,
+            queue_size=1)
 
         self.publisher = rospy.Publisher(
-            name=self._state_topic, data_class=JointState, queue_size=10)
+            name=self._state_topic,
+            data_class=JointState,
+            queue_size=10)
 
         state_thread = Thread(target=self.state_thread)
         state_thread.start()
@@ -86,17 +91,19 @@ class VelocityControllerNode:
             self._config = config
         else:
             if self._config.reverse_left_wheel != config.reverse_left_wheel:
-                self._connection_handler.change_direction('left')
+                self._connection_handler.change_direction(side='left')
             if self._config.reverse_right_wheel != config.reverse_right_wheel:
-                self._connection_handler.change_direction('right')
-            if self._config.swap_wheels != config.swap_wheels:
-                self._connection_handler.swap_connections()
+                self._connection_handler.change_direction(side='right')
+            if self._config.exchange_wheels != config.exchange_wheels:
+                self._connection_handler.exchange_connections()
+            if self._config.state_rate != config.state_rate:
+                self._state_rate = rospy.Rate(int(config.state_rate))
             self._config = config
 
     def state_thread(self):
         while not rospy.is_shutdown():
             self.publisher.publish(self._connection_handler.get_state())
-            self._rate.sleep()
+            self._state_rate.sleep()
 
 
 if __name__ == '__main__':

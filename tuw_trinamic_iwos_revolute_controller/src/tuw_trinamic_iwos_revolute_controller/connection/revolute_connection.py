@@ -10,7 +10,7 @@ from sensor_msgs.msg import JointState
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_config_exception import InvalidConfigException
 
 
-class TrinamicConnection:
+class RevoluteConnection:
     def __init__(self, usb_port):
         self._node_name = rospy.get_name()
         self._config = None
@@ -49,59 +49,56 @@ class TrinamicConnection:
         self._set_velocity_i_parameter(velocity_i=config.velocity_i_parameter)
         self._set_torque_p_parameter(torque_p=config.torque_p_parameter)
         self._set_torque_i_parameter(torque_i=config.torque_i_parameter)
-        return self._check_config(config=config)
+        return self._verify_config(config=config)
 
-    def get_config(self):
-        self._config.motor_pole_pairs = self._get_motor_pole_pairs()
-        self._config.digital_hall_invert = self._get_digital_hall_inverter()
-        self._config.max_velocity = self._get_max_velocity()
-        self._config.max_torque = self._get_max_torque()
-        self._config.acceleration = self._get_acceleration()
-        self._config.ramp_enable = self._get_ramp_enable()
-        self._config.target_reached_distance = self._get_target_reached_distance()
-        self._config.target_reached_velocity = self._get_target_reached_velocity()
-        self._config.motor_halted_velocity = self._get_motor_halted_velocity()
-        self._config.position_p_parameter = self._get_position_p_parameter()
-        self._config.velocity_p_parameter = self._get_velocity_p_parameter()
-        self._config.velocity_i_parameter = self._get_velocity_i_parameter()
-        self._config.torque_p_parameter = self._get_torque_p_parameter()
-        self._config.torque_i_parameter = self._get_torque_i_parameter()
-        return self._config
-
-    def _check_config(self, config):
-        self._check_config_value(should=config.motor_pole_pairs, actual=self._get_motor_pole_pairs(),
-                                 string='motor pole pairs')
-        self._check_config_value(should=config.digital_hall_invert, actual=self._get_digital_hall_inverter(),
-                                 string='digital hall inverter')
-        self._check_config_value(should=config.max_velocity, actual=self._get_max_velocity(),
-                                 string='max velocity')
-        self._check_config_value(should=config.max_torque, actual=self._get_max_torque(),
-                                 string='max torque')
-        self._check_config_value(should=config.acceleration, actual=self._get_acceleration(),
-                                 string='acceleration')
-        self._check_config_value(should=config.ramp_enable, actual=self._get_ramp_enable(),
-                                 string='ramp enable')
-        self._check_config_value(should=config.target_reached_distance, actual=self._get_target_reached_distance(),
-                                 string='target reached distance')
-        self._check_config_value(should=config.target_reached_velocity, actual=self._get_target_reached_velocity(),
-                                 string='target reached velocity')
-        self._check_config_value(should=config.motor_halted_velocity, actual=self._get_motor_halted_velocity(),
-                                 string='motor halted velocity')
-        self._check_config_value(should=config.position_p_parameter, actual=self._get_position_p_parameter(),
-                                 string='position p parameter')
-        self._check_config_value(should=config.velocity_p_parameter, actual=self._get_velocity_p_parameter(),
-                                 string='velocity p parameter')
-        self._check_config_value(should=config.velocity_i_parameter, actual=self._get_velocity_i_parameter(),
-                                 string='velocity i parameter')
-        self._check_config_value(should=config.torque_p_parameter, actual=self._get_torque_p_parameter(),
-                                 string='torque p parameter')
-        self._check_config_value(should=config.torque_i_parameter, actual=self._get_torque_i_parameter(),
-                                 string='torque i parameter')
+    def _verify_config(self, config):
+        self._verify_config_value(should=config.motor_pole_pairs,
+                                  actual=self._get_motor_pole_pairs(),
+                                  name='motor pole pairs')
+        self._verify_config_value(should=config.digital_hall_invert,
+                                  actual=self._get_digital_hall_inverter(),
+                                  name='digital hall inverter')
+        self._verify_config_value(should=config.max_velocity,
+                                  actual=self._get_max_velocity(),
+                                  name='max velocity')
+        self._verify_config_value(should=config.max_torque,
+                                  actual=self._get_max_torque(),
+                                  name='max torque')
+        self._verify_config_value(should=config.acceleration,
+                                  actual=self._get_acceleration(),
+                                  name='acceleration')
+        self._verify_config_value(should=config.ramp_enable,
+                                  actual=self._get_ramp_enable(),
+                                  name='ramp enable')
+        self._verify_config_value(should=config.target_reached_distance,
+                                  actual=self._get_target_reached_distance(),
+                                  name='target reached distance')
+        self._verify_config_value(should=config.target_reached_velocity,
+                                  actual=self._get_target_reached_velocity(),
+                                  name='target reached velocity')
+        self._verify_config_value(should=config.motor_halted_velocity,
+                                  actual=self._get_motor_halted_velocity(),
+                                  name='motor halted velocity')
+        self._verify_config_value(should=config.position_p_parameter,
+                                  actual=self._get_position_p_parameter(),
+                                  name='position p parameter')
+        self._verify_config_value(should=config.velocity_p_parameter,
+                                  actual=self._get_velocity_p_parameter(),
+                                  name='velocity p parameter')
+        self._verify_config_value(should=config.velocity_i_parameter,
+                                  actual=self._get_velocity_i_parameter(),
+                                  name='velocity i parameter')
+        self._verify_config_value(should=config.torque_p_parameter,
+                                  actual=self._get_torque_p_parameter(),
+                                  name='torque p parameter')
+        self._verify_config_value(should=config.torque_i_parameter,
+                                  actual=self._get_torque_i_parameter(),
+                                  name='torque i parameter')
         return config
 
-    def _check_config_value(self, should, actual, string):
+    def _verify_config_value(self, should, actual, name):
         if should != actual:
-            rospy.logerr('%s: failed to configure ', self._node_name, string)
+            rospy.logerr('%s: failed to configure ', self._node_name, name)
             raise InvalidConfigException()
 
     def _get_position(self):

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from tuw_trinamic_iwos_revolute_controller.config.abstract_dynamic_config import AbstractDynamicConfig
-from tuw_trinamic_iwos_revolute_controller.config.abstract_file_config import AbstractFileConfig
-from tuw_trinamic_iwos_revolute_controller.file_reader.file_reader import FileHandler
+from tuw_trinamic_iwos_revolute_controller.config.abstract.default_config import DefaultConfig
+from tuw_trinamic_iwos_revolute_controller.config.abstract.dynamic_config import DynamicConfig
+from tuw_trinamic_iwos_revolute_controller.file_handler.file_handler import FileHandler
 
 
-class RevoluteConfig(AbstractDynamicConfig, AbstractFileConfig):
+class RevoluteConfig(DefaultConfig, DynamicConfig):
     def __init__(self):
         self.wheel_diameter = None
         self.motor_pole_pairs = None
@@ -86,5 +86,4 @@ class RevoluteConfig(AbstractDynamicConfig, AbstractFileConfig):
         self.velocity_i_parameter = dynamic_config['velocity_i_parameter']
         self.torque_p_parameter = dynamic_config['torque_p_parameter']
         self.torque_i_parameter = dynamic_config['torque_i_parameter']
-
         return self
