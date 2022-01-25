@@ -35,7 +35,7 @@ class ConfigHandler:
         if level == -1:
             return self.revolute_config.to_dynamic_reconfigure()
 
-        self.revolute_config = RevoluteConfig.from_dynamic_reconfigure(dynamic_config=dynamic_reconfigure)
+        self.revolute_config = RevoluteConfig().from_dynamic_reconfigure(dynamic_config=dynamic_reconfigure)
         self.set_revolute_config()
         self.fetch_revolute_config()
         return self.revolute_config.to_dynamic_reconfigure
