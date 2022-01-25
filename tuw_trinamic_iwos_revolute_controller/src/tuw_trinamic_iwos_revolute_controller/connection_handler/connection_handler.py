@@ -21,7 +21,7 @@ class ConnectionHandler:
         rospy.loginfo('%s: ATTEMPTING TO SETUP PORTS: %s, %s', self._node_name, usb_ports[0], usb_ports[1])
 
         for attempt in range(1, attempts + 1):
-            rospy.loginfo('%s: connecting (%2d of %2d)', self._node_name, attempt, attempts)
+            rospy.loginfo('%s: connecting (attempt %2d of %2d)', self._node_name, attempt, attempts)
 
             self._create_connection(side='left', usb_port=usb_ports[0])
             self._create_connection(side='right', usb_port=usb_ports[1])
@@ -38,16 +38,16 @@ class ConnectionHandler:
         try:
             self._connections[side] = RevoluteConnection(usb_port=usb_port)
         except InvalidPathException:
-            rospy.logerr('failed to load configuration (invalid path)')
+            rospy.logerr('%s: failed to load configuration (invalid path)', self._node_name)
             self._connections[side] = None
         except InvalidFileException:
-            rospy.logerr('failed to load configuration (invalid file)')
+            rospy.logerr('%s: failed to load configuration (invalid file)', self._node_name)
             self._connections[side] = None
         except ConnectionError:
-            rospy.logwarn('failed to connect to device on USB port %s', usb_port)
+            rospy.logwarn('%s: failed to connect to device on USB port %s', self._node_name, usb_port)
             self._connections[side] = None
         else:
-            rospy.loginfo('succeeded to connect to device on USB port %s', usb_port)
+            rospy.loginfo('%s: succeeded to connect to device on USB port %s', self._node_name, usb_port)
 
     def set_config(self, config):
         for connection in self._connections.values():
