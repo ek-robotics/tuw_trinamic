@@ -18,21 +18,23 @@ class ConnectionHandler:
 
     def connect(self, usb_ports, attempts=10):
         log_string = '{node_name}: ATTEMPTING TO SETUP:'.format(node_name=self._node_name)
-        log_string += ''.join(['\n - wheel on port {port}'.format(port=port) for port in usb_ports.values()])
+        log_string += ''.join(['\n - wheel on port {port}'.format(port=port) for port in usb_ports])
         rospy.loginfo(log_string)
 
         for attempt in range(1, attempts + 1):
             rospy.loginfo('%s: connecting (%2d of %2d)', self._node_name, attempt, attempts)
 
-            self._connections['left'] = self._connect_trinamic(usb_ports[0])
-            self._connections['right'] = self._connect_trinamic(usb_ports[1])
+            rospy.loginfo(usb_ports)
 
-            if all(self._connections):
+            self._connect_trinamic(side='left', usb_port=usb_ports[0])
+            self._connect_trinamic(side='right', usb_port=usb_ports[1])
+
+            if all(self._connections.values()):
                 break
             else:
                 rospy.sleep(1)
 
-        if not all(self._connections):
+        if not all(self._connections.values()):
             rospy.logerr('shutting down node ...')
             rospy.signal_shutdown('failed to connect to wheel(s)')
 
@@ -42,22 +44,17 @@ class ConnectionHandler:
     def change_direction(self, side):
         self._directions[side] *= -1
 
-    @staticmethod
-    def _connect_trinamic(usb_port):
+    def _connect_trinamic(self, side, usb_port):
         try:
-            trinamic_connection = TrinamicConnection(usb_port=usb_port)
+            self._connections[side] = TrinamicConnection(usb_port=usb_port)
         except InvalidPathException:
             rospy.logerr('failed to load configuration (invalid path)')
-            return None
         except InvalidFileException:
             rospy.logerr('failed to load configuration (invalid file)')
-            return None
         except ConnectionError:
             rospy.logwarn('failed to connect to device on USB port %s', usb_port)
-            return None
         else:
             rospy.loginfo('succeeded to connect to device on USB port %s', usb_port)
-            return trinamic_connection
 
     def set_config(self, config):
         for connection in self._connections.values():
@@ -70,6 +67,8 @@ class ConnectionHandler:
 
     def set_target_velocity(self, target_velocities):
         for side, index in self._index.items():
+            rospy.loginfo(side)
+            rospy.loginfo(self._connections[side])
             target_velocity = target_velocities[index] * self._directions[side]
             self._connections[side].set_target_velocity(target_velocity=target_velocity)
 
@@ -78,10 +77,11 @@ class ConnectionHandler:
                       for side, connection in self._connections.items()]
 
         merged_state = JointState()
-        merged_state.name = [joint_state.name for joint_state in state_list]
-        merged_state.position = [joint_state.position for joint_state in state_list]
-        merged_state.velocity = [joint_state.velocity for joint_state in state_list]
-        merged_state.effort = [joint_state.effort for joint_state in state_list]
+        for joint_state in state_list:
+            merged_state.name.extend(joint_state.name)
+            merged_state.position.extend(joint_state.position)
+            merged_state.velocity.extend(joint_state.velocity)
+            merged_state.effort.extend(joint_state.effort)
         return merged_state
 
     def _check_configs_identical(self):

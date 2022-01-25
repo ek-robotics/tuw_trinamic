@@ -5,7 +5,7 @@ from tuw_trinamic_iwos_revolute_controller.config.abstract_file_config import Ab
 from tuw_trinamic_iwos_revolute_controller.file_reader.file_reader import FileHandler
 
 
-class TrinamicConfig(AbstractDynamicConfig, AbstractFileConfig):
+class RevoluteConfig(AbstractDynamicConfig, AbstractFileConfig):
     def __init__(self):
         self.wheel_diameter = None
         self.motor_pole_pairs = None

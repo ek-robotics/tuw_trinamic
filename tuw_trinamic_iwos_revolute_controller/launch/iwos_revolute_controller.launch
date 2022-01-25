@@ -4,7 +4,7 @@
   <arg name="usb_port_right_wheel"    default="/dev/ttyACM1"/>
 
   <param name="revolute_node_info"    value="$(find tuw_trinamic_iwos_revolute_controller)/cfg/config_node.yaml"/>
-  <param name="trinamic_info"         value="config_revolute.yaml"/>
+  <param name="revolute_info"         value="$(find tuw_trinamic_iwos_revolute_controller)/cfg/config_revolute.yaml"/>
 
   <node name="tuw_dynamixel_iwos_revolute_controller" pkg="tuw_trinamic_iwos_revolute_controller" type="revolute_controller_node"
         required="true" output="screen" args="$(arg usb_port_left_wheel) $(arg usb_port_right_wheel)">

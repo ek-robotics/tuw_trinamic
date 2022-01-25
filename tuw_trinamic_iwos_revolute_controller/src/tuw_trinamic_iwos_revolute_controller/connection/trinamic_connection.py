@@ -14,7 +14,7 @@ class TrinamicConnection:
     def __init__(self, usb_port):
         self._node_name = rospy.get_name()
         self._config = None
-        self._module_connection = ConnectionManager(argList=usb_port).connect()
+        self._module_connection = ConnectionManager(argList='--port ' + usb_port).connect()
         self._module = TMCM_1640(connection=self._module_connection)
         self._motor = self._module.motor(motorID=0)
 
@@ -27,10 +27,10 @@ class TrinamicConnection:
 
     def get_state(self, name):
         joint_state = JointState()
-        joint_state.name += name
-        joint_state.position += self._get_position()
-        joint_state.velocity += self._get_velocity()
-        joint_state.effort += self._get_torque()
+        joint_state.name.append(name)
+        joint_state.position.append(self._get_position())
+        joint_state.velocity.append(self._get_velocity())
+        joint_state.effort.append(self._get_torque())
         return joint_state
 
     def set_config(self, config):
@@ -129,7 +129,7 @@ class TrinamicConnection:
         self._motor.digitalHall.setHallInvert(invert=digital_hall_invert)
 
     def _get_digital_hall_inverter(self):
-        return self._motor.digialHall.hallInverter()
+        return self._motor.digitalHall.hallInvert()
 
     def _set_max_velocity(self, max_velocity):
         self._motor.linearRamp.setMaxVelocity(maxVelocity=max_velocity)

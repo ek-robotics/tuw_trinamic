@@ -3,11 +3,20 @@ project(tuw_trinamic_iwos_revolute_controller)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  roslint
+  dynamic_reconfigure
+)
+
+roslint_python()
+
+catkin_python_setup()
+
+generate_dynamic_reconfigure_options(
+  cfg/reconfigure_node.cfg
+  cfg/reconfigure_trinamic.cfg
 )
 
 catkin_package()
-
-catkin_python_setup()
 
 include_directories()
 

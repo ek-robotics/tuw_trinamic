@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
 import sys
-
 import rospy
 
-from dynamic_reconfigure.server import Server
+from threading import Thread
+from sensor_msgs.msg import JointState
 from tuw_nav_msgs.msg import JointsIWS
+from dynamic_reconfigure.server import Server
 
 from tuw_trinamic_iwos_revolute_controller.cfg import RevoluteNodeConfig
-from tuw_trinamic_iwos_revolute_controller.cfg import RevoluteConfig
+from tuw_trinamic_iwos_revolute_controller.cfg import TrinamicConfig
 from tuw_trinamic_iwos_revolute_controller.config_handler.config_handler import ConfigHandler
 from tuw_trinamic_iwos_revolute_controller.config.node_config import NodeConfig
-from tuw_trinamic_iwos_revolute_controller.config.trinamic_config import TrinamicConfig
+from tuw_trinamic_iwos_revolute_controller.config.revolute_config import RevoluteConfig
 from tuw_trinamic_iwos_revolute_controller.connection_handler.connection_handler import ConnectionHandler
 
 
@@ -23,6 +24,7 @@ class VelocityControllerNode:
         self._command_topic = 'iwos_cmd'
         self._state_topic = 'iwos_state_revolute'
         self._usb_ports = [usb_port_0, usb_port_1]
+        self._rate = None
 
         self._connection_handler = None
         self._config_handler = None
@@ -35,11 +37,15 @@ class VelocityControllerNode:
     def run(self):
         rospy.init_node(self._node_name)
 
+        self._rate = rospy.Rate(int(10))
+
         self._connection_handler = ConnectionHandler()
         self._connection_handler.connect(self._usb_ports)
 
-        node_config = NodeConfig().from_file(config_file_path=rospy.get_param(param_name='revolute_node_info'))
-        revolute_config = TrinamicConfig().from_file(config_file_path=rospy.get_param(param_name='revolute_info'))
+        node_config = NodeConfig()
+        revolute_config = RevoluteConfig()
+        node_config.from_file(config_file_path=rospy.get_param(param_name='revolute_node_info'))
+        revolute_config.from_file(config_file_path=rospy.get_param(param_name='revolute_info'))
 
         self._config_handler = ConfigHandler(
             node_connection=self,
@@ -49,16 +55,23 @@ class VelocityControllerNode:
         self._config_handler.set_node_config()
         self._config_handler.set_revolute_config()
 
-        self._reconfigure_node = Server(RevoluteNodeConfig, self._config_handler.dynamic_reconfigure_callback_node)
-        self._reconfigure_trinamic = Server(RevoluteConfig, self._config_handler.dynamic_reconfigure_callback_revolute)
+        self._reconfigure_node = Server(
+            type=RevoluteNodeConfig,
+            callback=self._config_handler.dynamic_reconfigure_callback_node,
+            namespace="node")
+        self._reconfigure_trinamic = Server(
+            type=TrinamicConfig,
+            callback=self._config_handler.dynamic_reconfigure_callback_revolute,
+            namespace="trinamic")
 
         self.subscriber = rospy.Subscriber(
             name=self._command_topic, data_class=JointsIWS, callback=self.callback_velocity, queue_size=1)
 
-        # TODO: define publisher
-        # self.publisher = rospy.Publisher()
+        self.publisher = rospy.Publisher(
+            name=self._state_topic, data_class=JointState, queue_size=10)
 
-        # TODO: define state_publisher
+        state_thread = Thread(target=self.state_thread)
+        state_thread.start()
 
         rospy.spin()
 
@@ -69,6 +82,8 @@ class VelocityControllerNode:
             rospy.logwarn('only cmd_velocity commands accepted, but %s received', message.type_revolute)
 
     def set_config(self, config):
+        if self._config is None:
+            self._config = config
         if self._config.reverse_left_wheel == config.reverse_left_wheel:
             self._connection_handler.change_direction('left')
         if self._config.reverse_right_wheel == config.reverse_right_wheel:
@@ -76,6 +91,11 @@ class VelocityControllerNode:
         if self._config.swap_wheels == config.swap_wheels:
             self._connection_handler.swap_connections()
         self._config = config
+
+    def state_thread(self):
+        while not rospy.is_shutdown():
+            self.publisher.publish(self._connection_handler.get_state())
+            self._rate.sleep()
 
 
 if __name__ == '__main__':
