@@ -62,7 +62,7 @@ class VelocityControllerNode:
         self._reconfigure_trinamic = Server(
             type=TrinamicConfig,
             callback=self._config_handler.dynamic_reconfigure_callback_revolute,
-            namespace="trinamic")
+            namespace="revolute")
 
         self.subscriber = rospy.Subscriber(
             name=self._command_topic,
