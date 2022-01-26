@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+
+from threading import Thread
+
+import rospy
+import sys
+from dynamic_reconfigure.server import Server
+from sensor_msgs.msg import JointState
+from std_msgs.msg import Int32MultiArray
+from tuw_trinamic_controller.cfg import TrinamicTMCM1640DynamicConfig
+
+from tuw_trinamic_controller.config.trinamic_TMCM_1640_config import TrinamicTMCM1640Config
+from tuw_trinamic_controller.connection.connection_handler import ConnectionHandler
+from tuw_trinamic_controller.connection.trinamic_TMCM_1640_connection import TrinamicTMCM1640Connection
+
+
+class TrinamicControllerNode:
+    def __init__(self, module, ports):
+        self._node_name = 'TRINAMIC_CONTROLLER_NODE'
+
+        self._connection_type = TrinamicControllerNode.select_connection_type(module=module)
+        self._config_type = TrinamicControllerNode.select_config_type(module=module)
+        self._reconfigure_type = TrinamicControllerNode.select_reconfigure_type(module=module)
+
+        self._ports = ports
+        self._command_topic = 'cmd'
+        self._state_topic = 'state'
+        self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz'))
+
+        self._connection_handler = None
+        self._reconfigure_server = None
+        self._subscriber = None
+        self._publisher = None
+
+    def run(self):
+        rospy.init_node(self._node_name)
+
+        self._connection_handler = ConnectionHandler(
+            connection_type=self._connection_type,
+            config_type=self._config_type)
+        self._connection_handler.connect_ports(
+            ports=self._ports)
+        self._connection_handler.set_config_from_file(
+            config_file_path=rospy.get_param(param_name='trinamic_config'))
+
+        self._reconfigure_server = Server(
+            type=self._reconfigure_type,
+            callback=self._connection_handler.callback_reconfigure)
+
+        self._subscriber = rospy.Subscriber(
+            name=self._command_topic,
+            data_class=Int32MultiArray,
+            callback=self.callback_command,
+            queue_size=1)
+
+        self._publisher = rospy.Publisher(
+            name=self._state_topic,
+            data_class=JointState,
+            queue_size=10)
+
+        state_thread = Thread(target=self.state_thread)
+        state_thread.start()
+
+        rospy.spin()
+
+    def callback_command(self, message):
+        self._connection_handler.callback_command(command=message.data)
+
+    def state_thread(self):
+        while not rospy.is_shutdown():
+            self._publisher.publish(self._connection_handler.get_state())
+            self._state_rate.sleep()
+
+    @staticmethod
+    def select_type(module):
+        supported_modules = {
+            'TMCM_1640': (TrinamicTMCM1640Connection, TrinamicTMCM1640Config, TrinamicTMCM1640DynamicConfig)
+        }
+        if module in supported_modules:
+            return supported_modules
+        if module not in supported_modules:
+            error_message = 'module {module_name} not supported'.format(module_name=module)
+            rospy.logerr(error_message)
+            rospy.signal_shutdown(error_message)
+
+    @staticmethod
+    def select_connection_type(module):
+        return TrinamicControllerNode.select_type(module=module)[0]
+
+    @staticmethod
+    def select_config_type(module):
+        return TrinamicControllerNode.select_type(module=module)[1]
+
+    @staticmethod
+    def select_reconfigure_type(module):
+        return TrinamicControllerNode.select_type(module=module)[2]
+
+
+if __name__ == '__main__':
+    try:
+        arguments = rospy.myargv(argv=sys.argv)
+        module_arg = arguments[0]
+        ports_arg = arguments[1:]
+        trinamic_controller_node = TrinamicControllerNode(module=module_arg, ports=ports_arg)
+        trinamic_controller_node.run()
+    except rospy.ROSInterruptException:
+        rospy.logerr('ROS Interrupt Exception')

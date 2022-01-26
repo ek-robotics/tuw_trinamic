@@ -1,0 +1,15 @@
+<launch>
+
+  <arg name="type" default="TMCM_1640"/>
+  <arg name="usb_port_0" default="/dev/ttyACM0"/>
+  <arg name="usb_port_1" default="/dev/ttyACM1"/>
+
+  <param name="trinamic_config" value="$(find tuw_trinamic_controller)/cfg/trinamic_TMCM_1640.yaml"/>
+
+  <node name="TRINAMIC_CONTROLLER_NODE" pkg="tuw_trinamic_controller" type="trinamic_controller_node"
+        required="true" output="screen" args="$(arg usb_port_0) $(arg usb_port_1)">
+    <remap from="cmd" to="iwos_revolute_cmd"/>
+    <remap from="state" to="iwos_revolute_state"/>
+  </node>
+
+</launch>
