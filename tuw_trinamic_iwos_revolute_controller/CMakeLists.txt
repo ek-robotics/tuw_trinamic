@@ -13,7 +13,7 @@ catkin_python_setup()
 
 generate_dynamic_reconfigure_options(
   cfg/reconfigure_node.cfg
-  cfg/reconfigure_trinamic.cfg
+  cfg/reconfigure_revolute.cfg
 )
 
 catkin_package()

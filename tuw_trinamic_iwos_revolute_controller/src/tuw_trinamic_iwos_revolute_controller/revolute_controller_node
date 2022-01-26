@@ -8,8 +8,8 @@ from sensor_msgs.msg import JointState
 from tuw_nav_msgs.msg import JointsIWS
 from dynamic_reconfigure.server import Server
 
-from tuw_trinamic_iwos_revolute_controller.cfg import RevoluteNodeConfig
-from tuw_trinamic_iwos_revolute_controller.cfg import TrinamicConfig
+from tuw_trinamic_iwos_revolute_controller.cfg import DynamicNodeConfig
+from tuw_trinamic_iwos_revolute_controller.cfg import DynamicRevoluteConfig
 from tuw_trinamic_iwos_revolute_controller.config_handler.config_handler import ConfigHandler
 from tuw_trinamic_iwos_revolute_controller.config.node_config import NodeConfig
 from tuw_trinamic_iwos_revolute_controller.config.revolute_config import RevoluteConfig
@@ -29,7 +29,7 @@ class VelocityControllerNode:
         self._connection_handler = None
         self._config_handler = None
         self._reconfigure_node = None
-        self._reconfigure_trinamic = None
+        self._reconfigure_revolute = None
 
         self.subscriber = None
         self.publisher = None
@@ -56,11 +56,11 @@ class VelocityControllerNode:
         self._config_handler.set_revolute_config()
 
         self._reconfigure_node = Server(
-            type=RevoluteNodeConfig,
+            type=DynamicNodeConfig,
             callback=self._config_handler.dynamic_reconfigure_callback_node,
             namespace="node")
-        self._reconfigure_trinamic = Server(
-            type=TrinamicConfig,
+        self._reconfigure_revolute = Server(
+            type=DynamicRevoluteConfig,
             callback=self._config_handler.dynamic_reconfigure_callback_revolute,
             namespace="revolute")
 
