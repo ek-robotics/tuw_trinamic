@@ -2,6 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import JointState
+from threading import Lock
 
 from tuw_trinamic_iwos_revolute_controller.connection.revolute_connection import RevoluteConnection
 from tuw_trinamic_iwos_revolute_controller.exception.invalid_config_exception import InvalidConfigException
@@ -11,6 +12,7 @@ from tuw_trinamic_iwos_revolute_controller.exception.invalid_path_exception impo
 
 class ConnectionHandler:
     def __init__(self):
+        self.lock = Lock()
         self._node_name = rospy.get_name()
         self._index = {'left': 0, 'right': 1}
         self._directions = {'left': 1, 'right': 1}
@@ -35,6 +37,7 @@ class ConnectionHandler:
             rospy.signal_shutdown('failed to connect to wheel(s)')
 
     def _create_connection(self, side, usb_port):
+        self.lock.acquire()
         try:
             self._connections[side] = RevoluteConnection(usb_port=usb_port)
         except InvalidPathException:
@@ -48,28 +51,36 @@ class ConnectionHandler:
             self._connections[side] = None
         else:
             rospy.loginfo('%s: succeeded to connect to device on USB port %s', self._node_name, usb_port)
+        self.lock.release()
 
     def set_config(self, config):
+        self.lock.acquire()
         for connection in self._connections.values():
             connection.set_config(config)
+        self.lock.release()
 
         return self.verify_config()
 
     def verify_config(self):
+        self.lock.acquire()
         configs = [(connection.get_config() for connection in self._connections.values())]
+        self.lock.release()
 
-        if all(config == configs[0] for config in configs):
-            return configs[0]
-        else:
+        if not all(config == configs[0] for config in configs):
             rospy.logerr('%s: the config is not consistent over all devices', self._node_name)
             raise InvalidConfigException
 
+        return configs[0]
+
     def set_target_velocity(self, target_velocities):
+        self.lock.acquire()
         for side, index in self._index.items():
             target_velocity = target_velocities[index] * self._directions[side]
             self._connections[side].set_target_velocity(target_velocity=target_velocity)
+        self.lock.release()
 
     def get_state(self):
+        self.lock.acquire()
         state_list = [connection.get_state(name='{side}_revolute'.format(side=side))
                       for side, connection in self._connections.items()]
 
@@ -83,6 +94,7 @@ class ConnectionHandler:
             merged_state.velocity.extend(joint_state.velocity)
             merged_state.effort.extend(joint_state.effort)
         self._state_seq += 1
+        self.lock.release()
         return merged_state
 
     def change_direction(self, side):
