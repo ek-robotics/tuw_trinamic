@@ -90,7 +90,7 @@ class ConnectionHandler:
             port.callback_command(command=port_command)
 
     def get_state(self):
-        state_list = [port.get_state() for port in self._ports.items()]
+        state_list = [port.get_state() for port in self._ports.values()]
         return JointState(
             name=[state.name for state in state_list],
             position=[state.position for state in state_list],
