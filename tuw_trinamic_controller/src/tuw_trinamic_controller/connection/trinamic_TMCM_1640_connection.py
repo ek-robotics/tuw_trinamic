@@ -2,12 +2,10 @@
 
 import threading
 
-import rospy
 from PyTrinamic.connections.ConnectionManager import ConnectionManager
 from PyTrinamic.modules.TMCM1640.TMCM_1640 import TMCM_1640
 
 from tuw_trinamic_controller.connection.abstract_trinamic_connection import AbstractTrinamicConnection
-from tuw_trinamic_controller.exception.invalid_config_exception import InvalidConfigException
 
 
 class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
@@ -74,7 +72,7 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
         config.target_reached_velocity = self._get_target_reached_velocity()
         config.motor_halted_velocity = self._get_motor_halted_velocity()
         config.position_p_parameter = self._get_position_p_parameter()
-        config.position_i_parameter = self._get_velocity_p_parameter()
+        config.velocity_p_parameter = self._get_velocity_p_parameter()
         config.velocity_i_parameter = self._get_velocity_i_parameter()
         config.torque_p_parameter = self._get_torque_p_parameter()
         config.torque_i_parameter = self._get_torque_i_parameter()

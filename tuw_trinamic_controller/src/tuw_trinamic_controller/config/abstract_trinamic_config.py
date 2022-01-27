@@ -6,7 +6,7 @@ from tuw_trinamic_controller.config.abstract_default_config import AbstractDefau
 from tuw_trinamic_controller.config.abstract_dynamic_config import AbstractDynamicConfig
 
 
-class AbstractTrinamicConfig(ABC, AbstractDefaultConfig, AbstractDynamicConfig):
+class AbstractTrinamicConfig(AbstractDefaultConfig, AbstractDynamicConfig):
 
     @abstractmethod
     def equals(self, config):

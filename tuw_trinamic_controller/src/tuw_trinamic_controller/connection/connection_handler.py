@@ -19,10 +19,10 @@ class ConnectionHandler:
         self._state_sequence = 0
 
     def connect_ports(self, ports, attempts=10):
-        rospy.loginfo('%s: connection on %d ports', self._node_name, len(self._ports))
+        rospy.loginfo('%s: connecting on %d ports', self._node_name, len(ports))
         self._ports = {port: None for port in ports}
 
-        for attempt in range(0, attempts):
+        for attempt in range(1, attempts + 1):
             for port, connection in self._ports.items():
                 if connection is None:
                     self.connect_port(port=port, attempt=attempt, attempts=attempts)
@@ -42,7 +42,7 @@ class ConnectionHandler:
             self._ports[port] = self._connection_type(port=port, config_type=self._config_type)
         except ConnectionError:
             rospy.logwarn('%s: failed to connect to device on USB port %s (attempt %2d of %2d)',
-                          self._node_name, port, attempt + 1, attempts + 1)
+                          self._node_name, port, attempt, attempts)
             self._ports[port] = None
         else:
             rospy.loginfo('%s: succeeded to connect to device on USB port %s (attempt %2d of %2d)',
@@ -80,7 +80,7 @@ class ConnectionHandler:
 
     def callback_reconfigure(self, dynamic_reconfigure, level):
         if level == -1:
-            self.get_config()
+            return self.get_config().to_dynamic_reconfigure()
 
         config = self._config_type().from_dynamic_reconfigure(dynamic_reconfigure=dynamic_reconfigure)
         return self.set_config(config=config).to_dynamic_reconfigure()

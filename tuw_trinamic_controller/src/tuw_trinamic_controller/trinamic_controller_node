@@ -23,17 +23,20 @@ class TrinamicControllerNode:
         self._reconfigure_type = TrinamicControllerNode.select_reconfigure_type(module=module)
 
         self._ports = ports
-        self._command_topic = 'trinamic_cmd'
-        self._state_topic = 'trinamic_state'
-        self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz', default=60))
-
+        self._state_rate = None
         self._connection_handler = None
         self._reconfigure_server = None
+
+        self._command_topic = 'trinamic_cmd'
+        self._state_topic = 'trinamic_state'
+
         self._subscriber = None
         self._publisher = None
 
     def run(self):
         rospy.init_node(self._node_name)
+
+        self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz', default=60))
 
         self._connection_handler = ConnectionHandler(
             connection_type=self._connection_type,
@@ -77,7 +80,7 @@ class TrinamicControllerNode:
             'TMCM_1640': (TrinamicTMCM1640Connection, TrinamicTMCM1640Config, TrinamicTMCM1640DynamicConfig)
         }
         if module in supported_modules:
-            return supported_modules
+            return supported_modules[module]
         if module not in supported_modules:
             error_message = 'module {module_name} not supported'.format(module_name=module)
             rospy.logerr(error_message)
@@ -99,8 +102,8 @@ class TrinamicControllerNode:
 if __name__ == '__main__':
     try:
         arguments = rospy.myargv(argv=sys.argv)
-        module_arg = arguments[0]
-        ports_arg = arguments[1:]
+        module_arg = arguments[1]
+        ports_arg = arguments[2:]
         trinamic_controller_node = TrinamicControllerNode(module=module_arg, ports=ports_arg)
         trinamic_controller_node.run()
     except rospy.ROSInterruptException:
