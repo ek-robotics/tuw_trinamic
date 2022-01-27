@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from tuw_trinamic_controller.config.abstract_trinamic_config import AbstractComparableConfig
+from tuw_trinamic_controller.config.abstract_comparable_config import AbstractComparableConfig
 from tuw_trinamic_controller.config.abstract_default_config import AbstractDefaultConfig
 from tuw_trinamic_controller.config.abstract_dynamic_config import AbstractDynamicConfig
 from tuw_trinamic_controller.config.config_file_reader import ConfigFileReader
