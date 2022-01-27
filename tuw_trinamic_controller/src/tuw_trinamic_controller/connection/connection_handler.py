@@ -46,7 +46,7 @@ class ConnectionHandler:
             self._ports[port] = None
         else:
             rospy.loginfo('%s: succeeded to connect to device on USB port %s (attempt %2d of %2d)',
-                          self._node_name, port, attempt + 1, attempts + 1)
+                          self._node_name, port, attempt, attempts)
 
     def set_config_from_file(self, config_file_path):
         try:
@@ -86,14 +86,14 @@ class ConnectionHandler:
         return self.set_config(config=config).to_dynamic_reconfigure()
 
     def callback_command(self, command):
-        for port, port_command in zip(self._ports.items(), command):
-            port.callback_command(command=port_command)
+        for port, port_command in zip(self._ports.values(), command):
+            port.set_command(command=port_command)
 
     def get_state(self):
         state_list = [port.get_state() for port in self._ports.values()]
         return JointState(
-            name=[state.name for state in state_list],
-            position=[state.position for state in state_list],
-            velocity=[state.velocity for state in state_list],
-            effort=[state.effort for state in state_list]
+            name=[state['name'] for state in state_list],
+            position=[state['position'] for state in state_list],
+            velocity=[state['velocity'] for state in state_list],
+            effort=[state['effort'] for state in state_list]
         )
