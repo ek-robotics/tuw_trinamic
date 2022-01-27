@@ -2,11 +2,8 @@
 
 from abc import ABC, abstractmethod
 
-from tuw_trinamic_controller.config.abstract_default_config import AbstractDefaultConfig
-from tuw_trinamic_controller.config.abstract_dynamic_config import AbstractDynamicConfig
 
-
-class AbstractTrinamicConfig(AbstractDefaultConfig, AbstractDynamicConfig):
+class AbstractComparableConfig(ABC):
 
     @abstractmethod
     def equals(self, config):
