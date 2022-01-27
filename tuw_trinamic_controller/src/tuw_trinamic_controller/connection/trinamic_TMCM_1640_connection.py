@@ -22,7 +22,7 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
 
     def set_command(self, command):
         self._lock.acquire()
-        self._set_target_velocity(target_velocity=command)
+        self._set_target_velocity(target_velocity=round(command))
         self._lock.release()
 
     def get_state(self):

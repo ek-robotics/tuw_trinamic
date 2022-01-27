@@ -6,7 +6,7 @@ import rospy
 import sys
 from dynamic_reconfigure.server import Server
 from sensor_msgs.msg import JointState
-from std_msgs.msg import Int32MultiArray
+from tuw_nav_msgs.msg import Float64Array
 from tuw_trinamic_controller.cfg import TrinamicTMCM1640DynamicConfig
 
 from tuw_trinamic_controller.config.trinamic_TMCM_1640_config import TrinamicTMCM1640Config
@@ -23,9 +23,9 @@ class TrinamicControllerNode:
         self._reconfigure_type = TrinamicControllerNode.select_reconfigure_type(module=module)
 
         self._ports = ports
-        self._command_topic = 'cmd'
-        self._state_topic = 'state'
-        self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz'))
+        self._command_topic = 'trinamic_cmd'
+        self._state_topic = 'trinamic_state'
+        self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz', default=60))
 
         self._connection_handler = None
         self._reconfigure_server = None
@@ -49,14 +49,14 @@ class TrinamicControllerNode:
 
         self._subscriber = rospy.Subscriber(
             name=self._command_topic,
-            data_class=Int32MultiArray,
+            data_class=Float64Array,
             callback=self.callback_command,
-            queue_size=1)
+            queue_size=100)
 
         self._publisher = rospy.Publisher(
             name=self._state_topic,
             data_class=JointState,
-            queue_size=10)
+            queue_size=100)
 
         state_thread = Thread(target=self.state_thread)
         state_thread.start()
@@ -64,7 +64,7 @@ class TrinamicControllerNode:
         rospy.spin()
 
     def callback_command(self, message):
-        self._connection_handler.callback_command(command=message.data)
+        self._connection_handler.callback_command(command=message.val)
 
     def state_thread(self):
         while not rospy.is_shutdown():

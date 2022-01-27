@@ -14,6 +14,7 @@ class ConnectionHandler:
         self._node_name = rospy.get_name()
         self._connection_type = connection_type
         self._config_type = config_type
+        self._config = None
         self._ports = {}
         self._state_sequence = 0
 
@@ -71,9 +72,16 @@ class ConnectionHandler:
             rospy.logerr('%s: config inconsistent', self._node_name)
             raise InvalidConfigException
 
+        self._config = config
         return config
 
+    def get_config(self):
+        return self._config
+
     def callback_reconfigure(self, dynamic_reconfigure, level):
+        if level == -1:
+            self.get_config()
+
         config = self._config_type().from_dynamic_reconfigure(dynamic_reconfigure=dynamic_reconfigure)
         return self.set_config(config=config).to_dynamic_reconfigure()
 

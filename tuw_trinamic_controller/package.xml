@@ -17,11 +17,12 @@
   <build_depend>roslint</build_depend>
   <build_depend>rospy</build_depend>
 
-  <exec_depend>rospy</exec_depend>
+  <exec_depend>dynamic_reconfigure</exec_depend>
   <exec_depend>python3-pytrinamic-pip</exec_depend>
+  <exec_depend>rospy</exec_depend>
 
   <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
+  <depend>tuw_nav_msgs</depend>
 
   <export>
     <!--nothing to export -->
