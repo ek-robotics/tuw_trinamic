@@ -8,8 +8,16 @@ class AbstractComparableConfig(ABC):
     @abstractmethod
     def equals(self, config):
         """
-        check if all values of config are equal
+        check if all values set (not None) are equal
         :param config: config to check if equal
         :return: True (if equal) or False (if not equal)
+        """
+        pass
+
+    @abstractmethod
+    def all_set(self):
+        """
+        check if all values are set (not None)
+        :return: True (if all set) or False (if not all set)
         """
         pass

@@ -13,3 +13,10 @@ class AbstractDefaultConfig(ABC):
         :return:
         """
         pass
+
+    @staticmethod
+    def _if_present(config_content, key):
+        if key in config_content:
+            return config_content[key]
+        if key not in config_content:
+            return None

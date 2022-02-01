@@ -32,11 +32,14 @@ class AbstractTrinamicConnection(ABC):
         pass
 
     @abstractmethod
-    def set_config(self, config):
+    def set_config(self, config, verify=True):
         """
-        set config on device and verify config is set correct (by comparing config to set with config from get)
+        set config on device and verify config is set correct
+        config is set correct if all values not None are set correct
         :param config: config to set
-        :return: config to set (if set successful) or None (if not set successful)
+        :param verify: boolean flag to decide if config shall be verified after setting
+        :return: verify True: config on device (if set successful) or None (if not set successful)
+                 verify False: config on device
         """
         pass
 

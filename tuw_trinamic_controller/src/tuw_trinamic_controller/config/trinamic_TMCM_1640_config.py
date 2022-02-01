@@ -26,20 +26,46 @@ class TrinamicTMCM1640Config(AbstractComparableConfig, AbstractDefaultConfig, Ab
 
     def equals(self, config):
         check_list = []
-        check_list += [True if self.motor_pole_pairs == config.motor_pole_pairs else False]
-        check_list += [True if self.digital_hall_invert == config.digital_hall_invert else False]
-        check_list += [True if self.max_velocity == config.max_velocity else False]
-        check_list += [True if self.max_torque == config.max_torque else False]
-        check_list += [True if self.acceleration == config.acceleration else False]
-        check_list += [True if self.ramp_enable == config.ramp_enable else False]
-        check_list += [True if self.target_reached_distance == config.target_reached_distance else False]
-        check_list += [True if self.target_reached_velocity == config.target_reached_velocity else False]
-        check_list += [True if self.motor_halted_velocity == config.motor_halted_velocity else False]
-        check_list += [True if self.position_p_parameter == config.position_p_parameter else False]
-        check_list += [True if self.velocity_p_parameter == config.velocity_p_parameter else False]
-        check_list += [True if self.velocity_i_parameter == config.velocity_i_parameter else False]
-        check_list += [True if self.torque_p_parameter == config.torque_p_parameter else False]
-        check_list += [True if self.torque_i_parameter == config.torque_i_parameter else False]
+        check_list += [self.true_if_equal(self.motor_pole_pairs, config.motor_pole_pairs)]
+        check_list += [self.true_if_equal(self.digital_hall_invert, config.digital_hall_invert)]
+        check_list += [self.true_if_equal(self.max_velocity, config.max_velocity)]
+        check_list += [self.true_if_equal(self.max_torque, config.max_torque)]
+        check_list += [self.true_if_equal(self.acceleration, config.acceleration)]
+        check_list += [self.true_if_equal(self.ramp_enable, config.ramp_enable)]
+        check_list += [self.true_if_equal(self.target_reached_distance, config.target_reached_distance)]
+        check_list += [self.true_if_equal(self.target_reached_velocity, config.target_reached_velocity)]
+        check_list += [self.true_if_equal(self.motor_halted_velocity, config.motor_halted_velocity)]
+        check_list += [self.true_if_equal(self.position_p_parameter, config.position_p_parameter)]
+        check_list += [self.true_if_equal(self.velocity_p_parameter, config.velocity_p_parameter)]
+        check_list += [self.true_if_equal(self.velocity_i_parameter, config.velocity_i_parameter)]
+        check_list += [self.true_if_equal(self.torque_p_parameter, config.torque_p_parameter)]
+        check_list += [self.true_if_equal(self.torque_i_parameter, config.torque_i_parameter)]
+        return all(check_list)
+    
+    @staticmethod
+    def true_if_equal(value_a, value_b):
+        if value_a is None:
+            return True
+        if value_a == value_b:
+            return True
+        return False
+
+    def all_set(self):
+        check_list = []
+        check_list += [True if self.motor_pole_pairs is not None else False]
+        check_list += [True if self.digital_hall_invert is not None else False]
+        check_list += [True if self.max_velocity is not None else False]
+        check_list += [True if self.max_torque is not None else False]
+        check_list += [True if self.acceleration is not None else False]
+        check_list += [True if self.ramp_enable is not None else False]
+        check_list += [True if self.target_reached_distance is not None else False]
+        check_list += [True if self.target_reached_velocity is not None else False]
+        check_list += [True if self.motor_halted_velocity is not None else False]
+        check_list += [True if self.position_p_parameter is not None else False]
+        check_list += [True if self.velocity_p_parameter is not None else False]
+        check_list += [True if self.velocity_i_parameter is not None else False]
+        check_list += [True if self.torque_p_parameter is not None else False]
+        check_list += [True if self.torque_i_parameter is not None else False]
         return all(check_list)
 
     def from_file(self, config_file_path):
@@ -87,18 +113,18 @@ class TrinamicTMCM1640Config(AbstractComparableConfig, AbstractDefaultConfig, Ab
         }
 
     def from_dynamic_reconfigure(self, dynamic_reconfigure):
-        self.motor_pole_pairs = dynamic_reconfigure['motor_pole_pairs']
-        self.digital_hall_invert = dynamic_reconfigure['digital_hall_invert']
-        self.max_velocity = dynamic_reconfigure['max_velocity']
-        self.max_torque = dynamic_reconfigure['max_torque']
-        self.acceleration = dynamic_reconfigure['acceleration']
-        self.ramp_enable = dynamic_reconfigure['ramp_enable']
-        self.target_reached_distance = dynamic_reconfigure['target_reached_distance']
-        self.target_reached_velocity = dynamic_reconfigure['target_reached_velocity']
-        self.motor_halted_velocity = dynamic_reconfigure['motor_halted_velocity']
-        self.position_p_parameter = dynamic_reconfigure['position_p_parameter']
-        self.velocity_p_parameter = dynamic_reconfigure['velocity_p_parameter']
-        self.velocity_i_parameter = dynamic_reconfigure['velocity_i_parameter']
-        self.torque_p_parameter = dynamic_reconfigure['torque_p_parameter']
-        self.torque_i_parameter = dynamic_reconfigure['torque_i_parameter']
+        self.motor_pole_pairs = self._if_present(dynamic_reconfigure, 'motor_pole_pairs')
+        self.digital_hall_invert = self._if_present(dynamic_reconfigure, 'digital_hall_invert')
+        self.max_velocity = self._if_present(dynamic_reconfigure, 'max_velocity')
+        self.max_torque = self._if_present(dynamic_reconfigure, 'max_torque')
+        self.acceleration = self._if_present(dynamic_reconfigure, 'acceleration')
+        self.ramp_enable = self._if_present(dynamic_reconfigure, 'ramp_enable')
+        self.target_reached_distance = self._if_present(dynamic_reconfigure, 'target_reached_distance')
+        self.target_reached_velocity = self._if_present(dynamic_reconfigure, 'target_reached_velocity')
+        self.motor_halted_velocity = self._if_present(dynamic_reconfigure, 'motor_halted_velocity')
+        self.position_p_parameter = self._if_present(dynamic_reconfigure, 'position_p_parameter')
+        self.velocity_p_parameter = self._if_present(dynamic_reconfigure, 'velocity_p_parameter')
+        self.velocity_i_parameter = self._if_present(dynamic_reconfigure, 'velocity_i_parameter')
+        self.torque_p_parameter = self._if_present(dynamic_reconfigure, 'torque_p_parameter')
+        self.torque_i_parameter = self._if_present(dynamic_reconfigure, 'torque_i_parameter')
         return self

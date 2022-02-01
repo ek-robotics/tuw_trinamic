@@ -6,6 +6,7 @@ from PyTrinamic.connections.ConnectionManager import ConnectionManager
 from PyTrinamic.modules.TMCM1640.TMCM_1640 import TMCM_1640
 
 from tuw_trinamic_controller.connection.abstract_trinamic_connection import AbstractTrinamicConnection
+from tuw_trinamic_controller.exception.invalid_config_exception import InvalidConfigException
 
 
 class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
@@ -34,30 +35,48 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
         self._lock.release()
         return state
 
-    def set_config(self, config):
+    def set_config(self, config, verify=True):
         self._lock.acquire()
-        self._set_motor_pole_pairs(motor_pole_pairs=config.motor_pole_pairs)
-        self._set_digital_hall_inverter(digital_hall_invert=config.digital_hall_invert)
-        self._set_max_velocity(max_velocity=config.max_velocity)
-        self._set_max_torque(max_torque=config.max_torque)
-        self._set_acceleration(acceleration=config.acceleration)
-        self._set_ramp_enable(ramp_enable=config.ramp_enable)
-        self._set_target_reached_distance(target_reached_distance=config.target_reached_distance)
-        self._set_target_reached_velocity(target_reached_velocity=config.target_reached_velocity)
-        self._set_motor_halted_velocity(motor_halted_velocity=config.motor_halted_velocity)
-        self._set_position_p_parameter(position_p_parameter=config.position_p_parameter)
-        self._set_velocity_p_parameter(velocity_p=config.velocity_p_parameter)
-        self._set_velocity_i_parameter(velocity_i=config.velocity_i_parameter)
-        self._set_torque_p_parameter(torque_p=config.torque_p_parameter)
-        self._set_torque_i_parameter(torque_i=config.torque_i_parameter)
+        if config.motor_pole_pairs is not None:
+            self._set_motor_pole_pairs(motor_pole_pairs=config.motor_pole_pairs)
+        if config.digital_hall_invert is not None:
+            self._set_digital_hall_inverter(digital_hall_invert=config.digital_hall_invert)
+        if config.max_velocity is not None:
+            self._set_max_velocity(max_velocity=config.max_velocity)
+        if config.max_torque is not None:
+            self._set_max_torque(max_torque=config.max_torque)
+        if config.acceleration is not None:
+            self._set_acceleration(acceleration=config.acceleration)
+        if config.ramp_enable is not None:
+            self._set_ramp_enable(ramp_enable=config.ramp_enable)
+        if config.target_reached_distance is not None:
+            self._set_target_reached_distance(target_reached_distance=config.target_reached_distance)
+        if config.target_reached_velocity is not None:
+            self._set_target_reached_velocity(target_reached_velocity=config.target_reached_velocity)
+        if config.motor_halted_velocity is not None:
+            self._set_motor_halted_velocity(motor_halted_velocity=config.motor_halted_velocity)
+        if config.position_p_parameter is not None:
+            self._set_position_p_parameter(position_p_parameter=config.position_p_parameter)
+        if config.velocity_p_parameter is not None:
+            self._set_velocity_p_parameter(velocity_p=config.velocity_p_parameter)
+        if config.velocity_i_parameter is not None:
+            self._set_velocity_i_parameter(velocity_i=config.velocity_i_parameter)
+        if config.torque_p_parameter is not None:
+            self._set_torque_p_parameter(torque_p=config.torque_p_parameter)
+        if config.torque_i_parameter is not None:
+            self._set_torque_i_parameter(torque_i=config.torque_i_parameter)
         self._lock.release()
 
         actual_config = self.get_config()
-        if config.equals(actual_config):
-            return config
 
-        if not config.equals(actual_config):
-            return None
+        if actual_config.all_set():
+            raise InvalidConfigException()
+
+        if verify:
+            return actual_config if config.equals(actual_config) else None
+
+        if not verify:
+            return actual_config
 
     def get_config(self):
         config = self._config_type()
