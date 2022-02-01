@@ -6,19 +6,21 @@ from abc import ABC, abstractmethod
 class AbstractTrinamicConnection(ABC):
 
     @abstractmethod
-    def __init__(self, port, config_type):
+    def __init__(self, port, baudrate, config_type):
         """
         constructor
-        :param port: port of the device
+        :param port: port of the connection
+        :param baudrate: baudrate of the connection
         :param config_type: config type of the device
         """
         pass
 
     @abstractmethod
-    def set_command(self, command):
+    def set_command(self, command, command_type):
         """
         set command to device
         :param command:  command to set
+        :param command_type: type of the command
         :return: True (if command was set successful) or False (if command was not set successful)
         """
         pass

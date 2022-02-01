@@ -18,14 +18,14 @@ class ConnectionHandler:
         self._ports = {}
         self._state_sequence = 0
 
-    def connect_ports(self, ports, attempts=10):
+    def connect_ports(self, ports, baudrate, attempts=10):
         rospy.loginfo('%s: connecting on %d ports', self._node_name, len(ports))
         self._ports = {port: None for port in ports}
 
         for attempt in range(1, attempts + 1):
             for port, connection in self._ports.items():
                 if connection is None:
-                    self.connect_port(port=port, attempt=attempt, attempts=attempts)
+                    self.connect_port(port=port, baudrate=baudrate, attempt=attempt, attempts=attempts)
 
             if all(self._ports.values()):
                 break

@@ -15,7 +15,7 @@ from tuw_trinamic_controller.connection.trinamic_TMCM_1640_connection import Tri
 
 
 class TrinamicControllerNode:
-    def __init__(self, module, ports):
+    def __init__(self, module, ports, baudrate):
         self._node_name = 'TRINAMIC_CONTROLLER_NODE'
 
         self._connection_type = TrinamicControllerNode.select_connection_type(module=module)
@@ -23,6 +23,7 @@ class TrinamicControllerNode:
         self._reconfigure_type = TrinamicControllerNode.select_reconfigure_type(module=module)
 
         self._ports = ports
+        self._baudrate = baudrate
         self._state_rate = None
         self._connection_handler = None
         self._reconfigure_server = None
@@ -42,7 +43,8 @@ class TrinamicControllerNode:
             connection_type=self._connection_type,
             config_type=self._config_type)
         self._connection_handler.connect_ports(
-            ports=self._ports)
+            ports=self._ports,
+            baudrate=self._baudrate)
         self._connection_handler.set_config_from_file(
             config_file_path=rospy.get_param(param_name='trinamic_config'))
 
@@ -103,8 +105,9 @@ if __name__ == '__main__':
     try:
         arguments = rospy.myargv(argv=sys.argv)
         module_arg = arguments[1]
-        ports_arg = arguments[2:]
-        trinamic_controller_node = TrinamicControllerNode(module=module_arg, ports=ports_arg)
+        ports_arg = arguments[2:-1]
+        baudrate_arg = arguments[-1]
+        trinamic_controller_node = TrinamicControllerNode(module=module_arg, ports=ports_arg, baudrate=baudrate_arg)
         trinamic_controller_node.run()
     except rospy.ROSInterruptException:
         rospy.logerr('ROS Interrupt Exception')

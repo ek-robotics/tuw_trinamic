@@ -6,23 +6,39 @@ from PyTrinamic.connections.ConnectionManager import ConnectionManager
 from PyTrinamic.modules.TMCM1640.TMCM_1640 import TMCM_1640
 
 from tuw_trinamic_controller.connection.abstract_trinamic_connection import AbstractTrinamicConnection
-from tuw_trinamic_controller.exception.invalid_config_exception import InvalidConfigException
 
 
 class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
 
-    def __init__(self, port, config_type):
+    def __init__(self, port, baudrate, config_type):
         self._lock = threading.Lock()
         self._port = port
+        self._baudrate = baudrate
         self._config_type = config_type
+        # TODO: add baudrate with "--data-rate"
         self._module_connection = ConnectionManager(argList='--port ' + self._port).connect()
         self._module = TMCM_1640(connection=self._module_connection)
         self._motor = self._module.motor(motorID=0)
 
-    def set_command(self, command):
+        self._command_functions = {
+            'position': self._set_command_position,
+            'velocity': self._set_command_velocity,
+            'torque': self._set_command_torque
+        }
+
+    def set_command(self, command, command_type):
         self._lock.acquire()
-        self._set_target_velocity(target_velocity=round(command))
+        self._command_functions[command_type](command)
         self._lock.release()
+
+    def _set_command_position(self, command):
+        self._set_target_position(target_position=round(command))
+
+    def _set_command_velocity(self, command):
+        self._set_target_velocity(target_velocity=round(command))
+
+    def _set_command_torque(self, command):
+        self._set_target_torque(target_torque=round(command))
 
     def get_state(self):
         self._lock.acquire()
@@ -69,8 +85,8 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
 
         actual_config = self.get_config()
 
-        if actual_config.all_set():
-            raise InvalidConfigException()
+        if not actual_config.all_set():
+            return None
 
         if verify:
             return actual_config if config.equals(actual_config) else None
@@ -107,8 +123,14 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
     def _get_torque(self):
         return self._motor.actualTorque()
 
+    def _set_target_position(self, target_position):
+        self._motor.setTargetPosition(position=target_position)
+
     def _set_target_velocity(self, target_velocity):
         self._motor.setTargetVelocity(velocity=target_velocity)
+
+    def _set_target_torque(self, target_torque):
+        self._motor.setTargetTorque(torque=target_torque)
 
     def _get_target_velocity(self):
         return self._motor.targetVelocity()
