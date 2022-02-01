@@ -14,6 +14,15 @@ class AbstractComparableConfig(ABC):
         """
         pass
 
+    @staticmethod
+    def _true_if_equal(value_a, value_b):
+        if value_a is None:
+            return True
+        if value_a == value_b:
+            return True
+        return False
+
+
     @abstractmethod
     def all_set(self):
         """
