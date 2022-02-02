@@ -16,12 +16,11 @@ class AbstractTrinamicConnection(ABC):
         pass
 
     @abstractmethod
-    def set_command(self, command, command_type):
+    def set_command(self, command):
         """
         set command to device
         :param command:  command to set
-        :param command_type: type of the command
-        :return: True (if command was set successful) or False (if command was not set successful)
+        :return:
         """
         pass
 

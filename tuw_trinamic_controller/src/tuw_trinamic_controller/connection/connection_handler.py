@@ -2,6 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import JointState
+from tuw_nav_msgs.msg import Joints
 
 from tuw_trinamic_controller.exception.invalid_config_exception import InvalidConfigException
 from tuw_trinamic_controller.exception.invalid_file_exception import InvalidFileException
@@ -15,35 +16,35 @@ class ConnectionHandler:
         self._connection_type = connection_type
         self._config_type = config_type
         self._config = None
-        self._ports = {}
+        self._devices = {}
         self._state_sequence = 0
 
-    def connect_ports(self, ports, baudrate, attempts=10):
+    def connect_devices(self, ports, baudrate, attempts=10):
         rospy.loginfo('%s: connecting on %d ports', self._node_name, len(ports))
-        self._ports = {port: None for port in ports}
+        self._devices = {device: None for device in ports}
 
         for attempt in range(1, attempts + 1):
-            for port, connection in self._ports.items():
+            for port, connection in self._devices.items():
                 if connection is None:
-                    self.connect_port(port=port, baudrate=baudrate, attempt=attempt, attempts=attempts)
+                    self.connect_device(port=port, baudrate=baudrate, attempt=attempt, attempts=attempts)
 
-            if all(self._ports.values()):
+            if all(self._devices.values()):
                 break
             else:
                 rospy.sleep(1)
 
-        if not all(self._ports.values()):
+        if not all(self._devices.values()):
             log_string = '{node_name}: failed to connect'.format(node_name=self._node_name)
             rospy.logerr(log_string)
             rospy.signal_shutdown(log_string)
 
-    def connect_port(self, port, attempt, attempts):
+    def connect_device(self, port, baudrate, attempt, attempts):
         try:
-            self._ports[port] = self._connection_type(port=port, config_type=self._config_type)
+            self._devices[port] = self._connection_type(port=port, baudrate=baudrate, config_type=self._config_type)
         except ConnectionError:
             rospy.logwarn('%s: failed to connect to device on USB port %s (attempt %2d of %2d)',
                           self._node_name, port, attempt, attempts)
-            self._ports[port] = None
+            self._devices[port] = None
         else:
             rospy.loginfo('%s: succeeded to connect to device on USB port %s (attempt %2d of %2d)',
                           self._node_name, port, attempt, attempts)
@@ -62,7 +63,7 @@ class ConnectionHandler:
             rospy.logerr('%s: config is invalid', self._node_name)
             raise InvalidConfigException
 
-        config_list = [port.set_config(config=config) for port in self._ports.values()]
+        config_list = [device.set_config(config=config) for device in self._devices.values()]
         if not all(config_list):
             rospy.logerr('%s: config set faulty', self._node_name)
             raise InvalidConfigException
@@ -86,14 +87,25 @@ class ConnectionHandler:
         return self.set_config(config=config).to_dynamic_reconfigure()
 
     def callback_command(self, command):
-        for port, port_command in zip(self._ports.values(), command):
-            port.set_command(command=port_command)
+        commands = self._split(command=command)
+        for device, device_command in zip(self._devices.values(), commands):
+            device.set_command(command=device_command)
+
+    def _split(self, command):
+        commands = []
+        for index, device in enumerate(self._devices.values()):
+            commands.append(
+                Joints(
+                    header=command.header,
+                    position=[list(command.position)[index] if len(command.position)-1 >= index else None],
+                    velocity=[list(command.velocity)[index] if len(command.velocity)-1 >= index else None],
+                    torque=[list(command.torque)[index] if len(command.torque)-1 >= index else None]))
+        return commands
 
     def get_state(self):
-        state_list = [port.get_state() for port in self._ports.values()]
-        return JointState(
-            name=[state['name'] for state in state_list],
+        state_list = [device.get_state() for device in self._devices.values()]
+        return Joints(
             position=[state['position'] for state in state_list],
             velocity=[state['velocity'] for state in state_list],
-            effort=[state['effort'] for state in state_list]
+            torque=[state['torque'] for state in state_list]
         )

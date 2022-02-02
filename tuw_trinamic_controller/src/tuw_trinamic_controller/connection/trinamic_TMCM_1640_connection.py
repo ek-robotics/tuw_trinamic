@@ -15,72 +15,79 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
         self._port = port
         self._baudrate = baudrate
         self._config_type = config_type
-        # TODO: add baudrate with "--data-rate"
-        self._module_connection = ConnectionManager(argList='--port ' + self._port).connect()
+        arg_list = '--port {port} --data-rate {baudrate}'.format(port=self._port, baudrate=self._baudrate)
+        self._module_connection = ConnectionManager(argList=arg_list).connect()
         self._module = TMCM_1640(connection=self._module_connection)
         self._motor = self._module.motor(motorID=0)
+        self._last_command = None
 
-        self._command_functions = {
-            'position': self._set_command_position,
-            'velocity': self._set_command_velocity,
-            'torque': self._set_command_torque
-        }
+    def set_command(self, command):
+        if self._last_command is None:
+            self._last_command = command
+            self._lock.acquire()
+            self._set_command_position(command=command.velocity[0])
+            self._set_command_velocity(command=command.velocity[0])
+            self._set_command_torque(command=command.torque[0])
+            self._lock.release()
+            return
 
-    def set_command(self, command, command_type):
-        self._lock.acquire()
-        self._command_functions[command_type](command)
-        self._lock.release()
+        elif command.header.seq > self._last_command.header.seq:
+            self._lock.acquire()
+            if command.position[0] != self._last_command.position[0]:
+                self._set_command_position(command=command.position[0])
+            if command.velocity[0] != self._last_command.velocity[0]:
+                self._set_command_velocity(command=command.velocity[0])
+            if command.torque[0] != self._last_command.torque[0]:
+                self._set_command_torque(command=command.torque[0])
+            self._lock.release()
+
+        elif command.header.seq < self._last_command.header.seq:
+            return
+
+        elif command.header.seq == self._last_command.header.seq:
+            return
+
+        self._last_command = command
 
     def _set_command_position(self, command):
-        self._set_target_position(target_position=round(command))
+        if command is not None:
+            self._set_target_position(target_position=round(command))
 
     def _set_command_velocity(self, command):
-        self._set_target_velocity(target_velocity=round(command))
+        if command is not None:
+            self._set_target_velocity(target_velocity=round(command))
 
     def _set_command_torque(self, command):
-        self._set_target_torque(target_torque=round(command))
+        # NOTE: command torque is interpreted as maximum torque
+        if command is not None:
+            self._set_max_torque(max_torque=round(command))
 
     def get_state(self):
         self._lock.acquire()
         state = {
-            'name': self._port,
             'position': self._get_position(),
             'velocity': self._get_velocity(),
-            'effort': self._get_torque()
+            'torque': self._get_torque()
         }
         self._lock.release()
         return state
 
     def set_config(self, config, verify=True):
         self._lock.acquire()
-        if config.motor_pole_pairs is not None:
-            self._set_motor_pole_pairs(motor_pole_pairs=config.motor_pole_pairs)
-        if config.digital_hall_invert is not None:
-            self._set_digital_hall_inverter(digital_hall_invert=config.digital_hall_invert)
-        if config.max_velocity is not None:
-            self._set_max_velocity(max_velocity=config.max_velocity)
-        if config.max_torque is not None:
-            self._set_max_torque(max_torque=config.max_torque)
-        if config.acceleration is not None:
-            self._set_acceleration(acceleration=config.acceleration)
-        if config.ramp_enable is not None:
-            self._set_ramp_enable(ramp_enable=config.ramp_enable)
-        if config.target_reached_distance is not None:
-            self._set_target_reached_distance(target_reached_distance=config.target_reached_distance)
-        if config.target_reached_velocity is not None:
-            self._set_target_reached_velocity(target_reached_velocity=config.target_reached_velocity)
-        if config.motor_halted_velocity is not None:
-            self._set_motor_halted_velocity(motor_halted_velocity=config.motor_halted_velocity)
-        if config.position_p_parameter is not None:
-            self._set_position_p_parameter(position_p_parameter=config.position_p_parameter)
-        if config.velocity_p_parameter is not None:
-            self._set_velocity_p_parameter(velocity_p=config.velocity_p_parameter)
-        if config.velocity_i_parameter is not None:
-            self._set_velocity_i_parameter(velocity_i=config.velocity_i_parameter)
-        if config.torque_p_parameter is not None:
-            self._set_torque_p_parameter(torque_p=config.torque_p_parameter)
-        if config.torque_i_parameter is not None:
-            self._set_torque_i_parameter(torque_i=config.torque_i_parameter)
+        self._set_config(function=self._set_motor_pole_pairs, value=config.motor_pole_pairs)
+        self._set_config(function=self._set_digital_hall_inverter, value=config.digital_hall_invert)
+        self._set_config(function=self._set_max_velocity, value=config.max_velocity)
+        self._set_config(function=self._set_max_torque, value=config.max_torque)
+        self._set_config(function=self._set_acceleration, value=config.acceleration)
+        self._set_config(function=self._set_ramp_enable, value=config.ramp_enable)
+        self._set_config(function=self._set_target_reached_distance, value=config.target_reached_distance)
+        self._set_config(function=self._set_target_reached_velocity, value=config.target_reached_velocity)
+        self._set_config(function=self._set_motor_halted_velocity, value=config.motor_halted_velocity)
+        self._set_config(function=self._set_position_p_parameter, value=config.position_p_parameter)
+        self._set_config(function=self._set_velocity_p_parameter, value=config.velocity_p_parameter)
+        self._set_config(function=self._set_velocity_i_parameter, value=config.velocity_i_parameter)
+        self._set_config(function=self._set_torque_p_parameter, value=config.torque_p_parameter)
+        self._set_config(function=self._set_torque_i_parameter, value=config.torque_i_parameter)
         self._lock.release()
 
         actual_config = self.get_config()
@@ -93,6 +100,11 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
 
         if not verify:
             return actual_config
+
+    @staticmethod
+    def _set_config(function, value):
+        if value is not None:
+            function(value)
 
     def get_config(self):
         config = self._config_type()
@@ -131,9 +143,6 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
 
     def _set_target_torque(self, target_torque):
         self._motor.setTargetTorque(torque=target_torque)
-
-    def _get_target_velocity(self):
-        return self._motor.targetVelocity()
 
     def _set_motor_pole_pairs(self, motor_pole_pairs):
         self._motor.setMotorPolePairs(polePairs=motor_pole_pairs)
