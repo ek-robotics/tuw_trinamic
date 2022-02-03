@@ -29,7 +29,7 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
             self._set_command_velocity(command=command.velocity[0])
             self._set_command_torque(command=command.torque[0])
             self._lock.release()
-            return
+            return True
 
         elif command.header.seq > self._last_command.header.seq:
             self._lock.acquire()
@@ -41,13 +41,16 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
                 self._set_command_torque(command=command.torque[0])
             self._lock.release()
 
+            self._last_command = command
+            return True
+
         elif command.header.seq < self._last_command.header.seq:
-            return
+            self._last_command = command
+            return False
 
         elif command.header.seq == self._last_command.header.seq:
-            return
-
-        self._last_command = command
+            self._last_command = command
+            return False
 
     def _set_command_position(self, command):
         if command is not None:

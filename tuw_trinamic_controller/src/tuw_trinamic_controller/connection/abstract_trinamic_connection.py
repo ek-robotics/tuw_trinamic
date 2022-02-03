@@ -20,7 +20,7 @@ class AbstractTrinamicConnection(ABC):
         """
         set command to device
         :param command:  command to set
-        :return:
+        :return: True (if new command was newer than last command) or False (otherwise)
         """
         pass
 
@@ -28,7 +28,7 @@ class AbstractTrinamicConnection(ABC):
     def get_state(self):
         """
         get joint state from device
-        :return: joint state from device
+        :return: joint state from device as dict with the keys: [position, velocity, torque]
         """
         pass
 

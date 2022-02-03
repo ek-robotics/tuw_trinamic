@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import rospy
-from sensor_msgs.msg import JointState
 from tuw_nav_msgs.msg import Joints
 
 from tuw_trinamic_controller.exception.invalid_config_exception import InvalidConfigException
@@ -20,8 +19,8 @@ class ConnectionHandler:
         self._state_sequence = 0
 
     def connect_devices(self, ports, baudrate, attempts=10):
-        rospy.loginfo('%s: connecting on %d ports', self._node_name, len(ports))
-        self._devices = {device: None for device in ports}
+        rospy.loginfo('%s: connecting on ports %s, %s (baudrate: %s)', self._node_name, ports[0], ports[1], baudrate)
+        self._devices = {port: None for port in ports}
 
         for attempt in range(1, attempts + 1):
             for port, connection in self._devices.items():
@@ -87,11 +86,10 @@ class ConnectionHandler:
         return self.set_config(config=config).to_dynamic_reconfigure()
 
     def callback_command(self, command):
-        commands = self._split(command=command)
-        for device, device_command in zip(self._devices.values(), commands):
+        for device, device_command in zip(self._devices.values(), self._command_to_list(command=command)):
             device.set_command(command=device_command)
 
-    def _split(self, command):
+    def _command_to_list(self, command):
         commands = []
         for index, device in enumerate(self._devices.values()):
             commands.append(
