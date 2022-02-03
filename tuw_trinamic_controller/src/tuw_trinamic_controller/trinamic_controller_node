@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from threading import Thread
-
 import rospy
 import sys
+import threading
+
 from dynamic_reconfigure.server import Server
-from sensor_msgs.msg import JointState
+
 from tuw_nav_msgs.msg import Joints
 from tuw_trinamic_controller.cfg import TrinamicTMCM1640DynamicConfig
 
@@ -15,12 +15,14 @@ from tuw_trinamic_controller.connection.trinamic_TMCM_1640_connection import Tri
 
 
 class TrinamicControllerNode:
-    def __init__(self, module, ports, baudrate):
+
+    def __init__(self, device, ports, baudrate):
         self._node_name = 'TRINAMIC_CONTROLLER_NODE'
 
-        self._connection_type = TrinamicControllerNode.select_connection_type(module=module)
-        self._config_type = TrinamicControllerNode.select_config_type(module=module)
-        self._reconfigure_type = TrinamicControllerNode.select_reconfigure_type(module=module)
+        self._connection_type = None
+        self._config_type = None
+        self._reconfigure_type = None
+        self._set_type(device=device)
 
         self._ports = ports
         self._baudrate = baudrate
@@ -35,7 +37,7 @@ class TrinamicControllerNode:
         self._publisher = None
 
     def run(self):
-        rospy.init_node(self._node_name)
+        rospy.init_node(name=self._node_name)
 
         self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz', default=60))
 
@@ -43,72 +45,74 @@ class TrinamicControllerNode:
             connection_type=self._connection_type,
             config_type=self._config_type,
         )
+
         self._connection_handler.connect_devices(
             ports=self._ports,
-            baudrate=self._baudrate)
+            baudrate=self._baudrate
+        )
+
         self._connection_handler.set_config_from_file(
-            config_file_path=rospy.get_param(param_name='trinamic_config'))
+            config_file_path=rospy.get_param(param_name='trinamic_config')
+        )
 
         self._reconfigure_server = Server(
             type=self._reconfigure_type,
-            callback=self._connection_handler.callback_reconfigure)
+            callback=self._connection_handler.callback_reconfigure
+        )
 
         self._subscriber = rospy.Subscriber(
             name=self._command_topic,
             data_class=Joints,
             callback=self.callback_command,
-            queue_size=100)
+            queue_size=100
+        )
 
         self._publisher = rospy.Publisher(
             name=self._state_topic,
             data_class=Joints,
-            queue_size=100)
+            queue_size=100
+        )
 
-        state_thread = Thread(target=self.state_thread)
+        state_thread = threading.Thread(target=self.state_publisher)
         state_thread.start()
 
         rospy.spin()
 
-    def callback_command(self, message):
-        self._connection_handler.callback_command(command=message)
+    def callback_command(self, command_message):
+        self._connection_handler.callback_command(command_message=command_message)
 
-    def state_thread(self):
+    def state_publisher(self):
         while not rospy.is_shutdown():
             self._publisher.publish(self._connection_handler.get_state())
             self._state_rate.sleep()
 
-    @staticmethod
-    def select_type(module):
-        supported_modules = {
-            'TMCM_1640': (TrinamicTMCM1640Connection, TrinamicTMCM1640Config, TrinamicTMCM1640DynamicConfig)
+    def _set_type(self, device):
+        supported_devices = {
+            'TMCM_1640': {'connection': TrinamicTMCM1640Connection,
+                          'config': TrinamicTMCM1640Config,
+                          'reconfigure': TrinamicTMCM1640DynamicConfig},
         }
-        if module in supported_modules:
-            return supported_modules[module]
-        if module not in supported_modules:
-            error_message = 'module {module_name} not supported'.format(module_name=module)
+        if device in supported_devices:
+            self._connection_type = supported_devices[device]['connection']
+            self._config_type = supported_devices[device]['config']
+            self._reconfigure_type = supported_devices[device]['reconfigure']
+        if device not in supported_devices:
+            error_message = 'device {device_name} not supported'.format(device_name=device)
             rospy.logerr(error_message)
             rospy.signal_shutdown(error_message)
-
-    @staticmethod
-    def select_connection_type(module):
-        return TrinamicControllerNode.select_type(module=module)[0]
-
-    @staticmethod
-    def select_config_type(module):
-        return TrinamicControllerNode.select_type(module=module)[1]
-
-    @staticmethod
-    def select_reconfigure_type(module):
-        return TrinamicControllerNode.select_type(module=module)[2]
 
 
 if __name__ == '__main__':
     try:
         arguments = rospy.myargv(argv=sys.argv)
-        module_arg = arguments[1]
+        device_arg = arguments[1]
         ports_arg = arguments[2:-1]
         baudrate_arg = arguments[-1]
-        trinamic_controller_node = TrinamicControllerNode(module=module_arg, ports=ports_arg, baudrate=baudrate_arg)
+        trinamic_controller_node = TrinamicControllerNode(
+            device=device_arg,
+            ports=ports_arg,
+            baudrate=baudrate_arg
+        )
         trinamic_controller_node.run()
     except rospy.ROSInterruptException:
         rospy.logerr('ROS Interrupt Exception')
