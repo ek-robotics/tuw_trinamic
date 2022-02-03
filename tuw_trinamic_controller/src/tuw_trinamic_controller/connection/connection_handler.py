@@ -67,12 +67,12 @@ class ConnectionHandler:
             rospy.logerr('%s: config set faulty', self._node_name)
             raise InvalidConfigException
 
-        check_list = [config_list[0].equals(config) for config in config_list]
+        check_list = [config_list[0].equals(config) for config in config_list[1:]]
         if not all(check_list):
             rospy.logerr('%s: config inconsistent', self._node_name)
             raise InvalidConfigException
 
-        self._config = config
+        self._config = config_list[0]
         return config
 
     def get_config(self):
@@ -85,19 +85,19 @@ class ConnectionHandler:
         config = self._config_type().from_dynamic_reconfigure(dynamic_reconfigure=dynamic_reconfigure)
         return self.set_config(config=config).to_dynamic_reconfigure()
 
-    def callback_command(self, command):
-        for device, device_command in zip(self._devices.values(), self._command_to_list(command=command)):
-            device.set_command(command=device_command)
+    def callback_command(self, command_message):
+        for device, command in zip(self._devices.values(), self._joints_message_to_list(message=command_message)):
+            device.set_command(command=command)
 
-    def _command_to_list(self, command):
+    def _joints_message_to_list(self, message):
         commands = []
         for index, device in enumerate(self._devices.values()):
             commands.append(
                 Joints(
-                    header=command.header,
-                    position=[list(command.position)[index] if len(command.position)-1 >= index else None],
-                    velocity=[list(command.velocity)[index] if len(command.velocity)-1 >= index else None],
-                    torque=[list(command.torque)[index] if len(command.torque)-1 >= index else None]))
+                    header=message.header,
+                    position=[list(message.position)[index] if len(message.position) - 1 >= index else None],
+                    velocity=[list(message.velocity)[index] if len(message.velocity) - 1 >= index else None],
+                    torque=[list(message.torque)[index] if len(message.torque) - 1 >= index else None]))
         return commands
 
     def get_state(self):
