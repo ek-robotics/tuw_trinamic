@@ -99,6 +99,8 @@ class TrinamicControllerNode:
         if device not in supported_devices:
             error_message = 'device {device_name} not supported'.format(device_name=device)
             rospy.logerr(error_message)
+            rospy.logerr("SHUTTING DOWN...")
+            rospy.sleep(10)
             rospy.signal_shutdown(error_message)
 
 

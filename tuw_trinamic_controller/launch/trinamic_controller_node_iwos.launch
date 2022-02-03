@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="module" default="TMCM_1640"/>
+  <arg name="device" default="TMCM_1640"/>
   <arg name="usb_port_0" default="/dev/ttyACM0"/>
   <arg name="usb_port_1" default="/dev/ttyACM1"/>
   <arg name="baudrate"   default="115200"/>
@@ -8,7 +8,7 @@
   <param name="trinamic_config" value="$(find tuw_trinamic_controller)/cfg/trinamic_TMCM_1640.yaml"/>
 
   <node name="TRINAMIC_CONTROLLER_NODE" pkg="tuw_trinamic_controller" type="trinamic_controller_node"
-        required="true" output="screen" args="$(arg module) $(arg usb_port_0) $(arg usb_port_1) $(arg baudrate)">
+        required="true" output="screen" args="$(arg device) $(arg usb_port_0) $(arg usb_port_1) $(arg baudrate)">
     <remap from="trinamic_cmd" to="iwos_cmd_revolute"/>
     <remap from="trinamic_state" to="iwos_state_revolute_raw"/>
   </node>
