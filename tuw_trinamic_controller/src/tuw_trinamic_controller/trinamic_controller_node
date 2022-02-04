@@ -39,7 +39,7 @@ class TrinamicControllerNode:
     def run(self):
         rospy.init_node(name=self._node_name)
 
-        self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz', default=60))
+        self._state_rate = rospy.Rate(hz=rospy.get_param(param_name='joint_state_hz', default=30))
 
         self._connection_handler = ConnectionHandler(
             connection_type=self._connection_type,
