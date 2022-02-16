@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+from std_msgs.msg import Header
 from tuw_nav_msgs.msg import Joints
 
 from tuw_trinamic_controller.exception.invalid_config_exception import InvalidConfigException
@@ -103,7 +104,7 @@ class ConnectionHandler:
     def get_state(self):
         state_list = [device.get_state() for device in self._devices.values()]
         return Joints(
+            header=Header(stamp=rospy.Time.now()),
             position=[state['position'] for state in state_list],
             velocity=[state['velocity'] for state in state_list],
-            torque=[state['torque'] for state in state_list]
-        )
+            torque=[state['torque'] for state in state_list])
