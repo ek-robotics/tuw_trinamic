@@ -10,7 +10,7 @@
   <node name="TRINAMIC_CONTROLLER_NODE" pkg="tuw_trinamic_controller" type="trinamic_controller_node"
         required="true" output="screen" args="$(arg device) $(arg usb_port_0) $(arg usb_port_1) $(arg baudrate)">
     <remap from="trinamic_cmd" to="iwos_cmd_revolute"/>
-    <remap from="trinamic_state" to="iwos_state_revolute_tuw"/>
+    <remap from="trinamic_state" to="iwos_data_revolute"/>
   </node>
 
 </launch>
