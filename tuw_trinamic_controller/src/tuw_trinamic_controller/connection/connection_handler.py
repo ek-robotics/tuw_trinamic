@@ -102,7 +102,7 @@ class ConnectionHandler:
         return commands
 
     def get_state(self):
-        state_list = [device.get_state() for device in self._devices.values()]
+        state_list = [device.get_state_message() for device in self._devices.values()]
         return Joints(
             header=Header(stamp=rospy.Time.now()),
             position=[state['position'] for state in state_list],

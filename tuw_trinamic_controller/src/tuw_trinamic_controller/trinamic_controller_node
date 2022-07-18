@@ -83,7 +83,8 @@ class TrinamicControllerNode:
 
     def state_publisher(self):
         while not rospy.is_shutdown():
-            self._publisher.publish(self._connection_handler.get_state())
+            state_message = self._connection_handler.get_state_message()
+            self._publisher.publish(state_message)
             self._state_rate.sleep()
 
     def _set_type(self, device):

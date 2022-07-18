@@ -24,7 +24,7 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
     def set_command(self, command):
         if self._last_command is None:
             self._last_command = command
-            self._lock.acquire()
+            self._lock.acquire(timeout=1)
             self._set_command_position(command=command.velocity[0])
             self._set_command_velocity(command=command.velocity[0])
             self._set_command_torque(command=command.torque[0])
@@ -32,7 +32,7 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
             return True
 
         elif command.header.seq > self._last_command.header.seq:
-            self._lock.acquire()
+            self._lock.acquire(timeout=1)
             if command.position[0] != self._last_command.position[0]:
                 self._set_command_position(command=command.position[0])
             if command.velocity[0] != self._last_command.velocity[0]:
@@ -65,8 +65,8 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
         if command is not None:
             self._set_max_torque(max_torque=round(command))
 
-    def get_state(self):
-        self._lock.acquire()
+    def get_state_message(self):
+        self._lock.acquire(timeout=1)
         state = {
             'position': self._get_position(),
             'velocity': self._get_velocity(),
@@ -76,7 +76,7 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
         return state
 
     def set_config(self, config, verify=True):
-        self._lock.acquire()
+        self._lock.acquire(timeout=1)
         self._set_config(function=self._set_motor_pole_pairs, value=config.motor_pole_pairs)
         self._set_config(function=self._set_digital_hall_inverter, value=config.digital_hall_invert)
         self._set_config(function=self._set_max_velocity, value=config.max_velocity)
@@ -111,7 +111,7 @@ class TrinamicTMCM1640Connection(AbstractTrinamicConnection):
 
     def get_config(self):
         config = self._config_type()
-        self._lock.acquire()
+        self._lock.acquire(timeout=1)
         config.motor_pole_pairs = self._get_motor_pole_pairs()
         config.digital_hall_invert = self._get_digital_hall_inverter()
         config.max_velocity = self._get_max_velocity()

@@ -25,7 +25,7 @@ class AbstractTrinamicConnection(ABC):
         pass
 
     @abstractmethod
-    def get_state(self):
+    def get_state_message(self):
         """
         get joint state from device
         :return: joint state from device as dict with the keys: [position, velocity, torque]
