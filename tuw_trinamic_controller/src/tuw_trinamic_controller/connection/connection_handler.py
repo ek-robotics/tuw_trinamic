@@ -101,7 +101,7 @@ class ConnectionHandler:
                     torque=[list(message.torque)[index] if len(message.torque) - 1 >= index else None]))
         return commands
 
-    def get_state(self):
+    def get_state_message(self):
         state_list = [device.get_state_message() for device in self._devices.values()]
         return Joints(
             header=Header(stamp=rospy.Time.now()),
