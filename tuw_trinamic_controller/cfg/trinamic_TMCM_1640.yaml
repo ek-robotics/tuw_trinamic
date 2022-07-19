@@ -6,15 +6,15 @@ Digital_Hall:
 
 Linear_Ramp:
   MaxVelocity: 500
-  Acceleration: 1000
+  Acceleration: 5000
   Ramp_Enabled: 1
   Target_Reached_Velocity: 500
   Target_Reached_Distance: 500
   Motor_Halted_Velocity: 50
 
 PID:
-  Torque_P_Parameter: 500
-  Torque_I_Parameter: 500
-  Velocity_P_Parameter: 1000
-  Velocity_I_Parameter: 1000
+  Torque_P_Parameter: 1000
+  Torque_I_Parameter: 1000
+  Velocity_P_Parameter: 10000
+  Velocity_I_Parameter: 5000
   Position_P_Parameter: 500
